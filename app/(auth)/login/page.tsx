@@ -1,4 +1,12 @@
-export default async function Login() {
+import { login, signup } from "@/lib/auth-actions";
+
+export default async function Login({
+    searchParams,
+}: {
+    searchParams: Promise<{ error?: string; message?: string }>
+}) {
+    const params = await searchParams;
+    
     return (
         <>
             <div className="flex min-h-screen items-center justify-center">
@@ -13,10 +21,13 @@ export default async function Login() {
                         <label htmlFor="password" className="text-black mt-4">Password:</label>
                         <input id="password" name="password" type="password" required className="border p-2 mt-2 rounded text-black"></input>
 
-                        <button className="bg-blue-950 text-white p-2 mt-6 rounded hover:bg-blue-400">
+                        {params.error && <p className="text-red-500 text-sm">{params.error}</p>}
+                        {params.message && <p className="text-green-600 text-sm">{params.message}</p>}
+
+                        <button formAction={login} className="bg-blue-950 text-white p-2 mt-6 rounded hover:bg-blue-400">
                             Log In
                         </button>
-                        <button className='bg-blue-950 text-white p-2 mt-4 rounded hover:bg-blue-400'>
+                        <button formAction={signup} className='bg-blue-950 text-white p-2 mt-4 rounded hover:bg-blue-400'>
                             Sign Up
                         </button>
                     </form>

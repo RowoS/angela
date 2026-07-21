@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { signOut } from '@/lib/auth-actions'
 
 export default async function Land() {
   const supabase = await createClient()
@@ -13,7 +14,7 @@ export default async function Land() {
     <div>
       <p>Welcome, {data.claims.email}</p>
       <form>
-        <button>Sign out</button>
+        <button formAction={signOut}>Sign out</button>
       </form>
     </div>
   )
