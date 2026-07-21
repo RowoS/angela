@@ -38,6 +38,7 @@ export async function updateSession(request: NextRequest) {
   const user = data?.claims
   if (
     !user &&
+    request.nextUrl.pathname.startsWith('/land') &&
     !request.nextUrl.pathname.startsWith('/login') &&
     !request.nextUrl.pathname.startsWith('/auth')
   ) {
