@@ -1,5 +1,23 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import type { UserRole } from '@/lib/role-actions'
+ 
+// Routes anyone can hit without being signed in.
+const PUBLIC_ROUTES = ['/login',  '/auth']
+ 
+// Routes that require a specific role, beyond just being signed in.
+// Checked in order; first prefix match wins.
+const ROLE_PROTECTED_ROUTES: { prefix: string; roles: UserRole[] }[] = [
+  { prefix: '/panel', roles: ['admin'] },
+  { prefix: '/dashboard', roles: ['agent'] },
+  { prefix: '/reports', roles: ['manager'] },
+]
+ 
+function isPublicRoute(pathname: string): boolean {
+  return PUBLIC_ROUTES.some((route) => pathname.startsWith(route))
+}
+
+
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
@@ -36,17 +54,37 @@ export async function updateSession(request: NextRequest) {
   // with the Supabase client, your users may be randomly logged out.
   const { data } = await supabase.auth.getClaims()
   const user = data?.claims
-  if (
-    !user &&
-    request.nextUrl.pathname.startsWith('/land') &&
-    !request.nextUrl.pathname.startsWith('/login') &&
-    !request.nextUrl.pathname.startsWith('/auth')
-  ) {
-    // no user, potentially respond by redirecting the user to the login page
+ 
+  const pathname = request.nextUrl.pathname
+ 
+  // Not signed in, trying to reach a page that requires auth -> bounce to login.
+  if (!user && !isPublicRoute(pathname)) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     return NextResponse.redirect(url)
   }
+ 
+  // Signed in, but the page requires a specific role -> check it.
+  // Only queried when the path actually matches a role-gated prefix, so
+  // most requests (public pages, general authenticated pages) skip this
+  // lookup entirely.
+  if (user) {
+    const roleRule = ROLE_PROTECTED_ROUTES.find((rule) => pathname.startsWith(rule.prefix))
+    if (roleRule) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.sub)
+        .single()
+ 
+      if (!profile || !roleRule.roles.includes(profile.role as UserRole)) {
+        const url = request.nextUrl.clone()
+        url.pathname = '/unauthorized'
+        return NextResponse.redirect(url)
+      }
+    }
+  }
+
   // IMPORTANT: You *must* return the supabaseResponse object as it is. If you're
   // creating a new response object with NextResponse.next() make sure to:
   // 1. Pass the request in it, like so:
