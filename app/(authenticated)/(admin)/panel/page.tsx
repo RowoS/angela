@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { signOut } from '@/lib/auth-actions'
 
-export default async function Land() {
+export default async function adminDashboard() {
   const supabase = await createClient()
   const { data } = await supabase.auth.getClaims()
 
@@ -12,7 +12,7 @@ export default async function Land() {
 
   return (
     <div>
-      <p>Welcome, {data.claims.email}</p>
+      <p>Welcome, admin</p>
       <form>
         <button formAction={signOut}>Sign out</button>
       </form>
