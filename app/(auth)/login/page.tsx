@@ -1,38 +1,57 @@
-import { login, signup } from "@/lib/auth-actions";
+import Image from "next/image";
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { login } from "@/lib/auth-actions";
 
-export default async function Login({
-    searchParams,
-}: {
-    searchParams: Promise<{ error?: string; message?: string }>
-}) {
-    const params = await searchParams;
-    
-    return (
-        <>
-            <div className="flex min-h-screen items-center justify-center">
-                <main className="bg-white max-w-sm w-full rounded">
-                    <h1 className="text-black font-bold text-center mt-6">DOST</h1>
-                    
-                    {/* Place form and other things into components after finishing RBAC*/}
-                    <form className="flex flex-col p-4">
-                        <label htmlFor="email" className="text-black">Email:</label>
-                        <input id="email" name="email" type="email" required className="border p-2 mt-2 rounded text-black"></input>
-
-                        <label htmlFor="password" className="text-black mt-4">Password:</label>
-                        <input id="password" name="password" type="password" required className="border p-2 mt-2 rounded text-black"></input>
-
-                        {params.error && <p className="text-red-500 text-sm">{params.error}</p>}
-                        {params.message && <p className="text-green-600 text-sm">{params.message}</p>}
-
-                        <button formAction={login} className="bg-blue-950 text-white p-2 mt-6 rounded hover:bg-blue-400">
-                            Log In
-                        </button>
-                        <button formAction={signup} className='bg-blue-950 text-white p-2 mt-4 rounded hover:bg-blue-400'>
-                            Sign Up
-                        </button>
-                    </form>
-                </main>
+export default function LoginPage() {
+  return (
+    <main>
+      <div className="flex flex-col items-center flex-1 justify-center h-screen w-screen bg-[#FAFAFA]">
+        {/* Form Here */}
+        <form className="flex flex-col justify-center gap-8 py-8 pr-10 pl-8 w-fit h-fit bg-white items-center border border-[#F2F2F2] rounded-lg">
+          <div className="flex flex-col w-fit h-fit gap-4">
+            <div className="flex flex-row gap-1.5 justify-center">
+              {/* Brand Logo */}
+              <div className="flex">
+                <Image
+                  src="/logo-icon-dark.svg"
+                  alt="Brand Logo"
+                  width={27}
+                  height={28}
+                  className="w-full h-auto"
+                />
+              </div>
+              <div className="flex flex-row items-center text-lg">
+                <p className="font-redhat text-[#26343A] font-black ">Sci</p>
+                <p className="bg-linear-to-r from-[#008AAC] to-[#71BED1] bg-clip-text text-transparent">.</p>
+                <p className="font-redhat text-[#26343A] font-black ">Part</p>
+              </div>
             </div>
-        </>
-    );
+            <div className="font-redhat gap-0 flex flex-col items-center">
+              <p className="font-black text-xl text-[#26343A]">Welcome Back</p>
+              <p className="font-normal text-xs text-[#26343A]">DOST8 IT Support Portal &mdash; signin to continue</p>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-5">
+            <Input
+              type="email"
+              name="email" 
+              placeholder="Email Address"
+              required 
+              className="h-12 w-80 bg-[#FAFAFA] border border-[#E2E2E2]"
+            />
+            <Input 
+              type="password" 
+              name="password" 
+              placeholder="Password"
+              required 
+              className="h-12 w-80 bg-[#FAFAFA] border border-[#E2E2E2]" 
+            />
+          </div>
+          <Button type="submit" variant="default" formAction={login} className="w-full h-12 bg-linear-to-r from-[#008AAC] to-[#71BED1] font-sans font-bold">Login</Button>
+        </form>
+      </div>
+    </main>
+  );
 }

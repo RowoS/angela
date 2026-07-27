@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import type { UserRole } from '@/lib/role-actions'
  
 // Routes anyone can hit without being signed in.
-const PUBLIC_ROUTES = ['/login',  '/auth']
+const PUBLIC_ROUTES = ['/', '/login',  '/auth']
  
 // Routes that require a specific role, beyond just being signed in.
 // Checked in order; first prefix match wins.
