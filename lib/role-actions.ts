@@ -1,17 +1,16 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
  
-export type UserRole = 'requester' | 'agent' | 'admin' | 'manager'
+export type UserRole = 'agent' | 'admin' | 'manager'
  
 // Where each role lands after authenticating.
 const ROLE_HOME_ROUTES: Record<UserRole, string> = {
   admin: '/panel',
   agent: '/dashboard',
   manager: '/reports',
-  requester: '/land',
 }
  
 export function roleHomeRoute(role: UserRole | null | undefined): string {
-  return ROLE_HOME_ROUTES[role ?? 'requester'] ?? '/land'
+  return ROLE_HOME_ROUTES[role ?? 'agent'] ?? '/dashboard'
 }
  
 /**
