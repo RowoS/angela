@@ -1,6 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
-import type { UserRole } from '@/lib/role-actions'
+import type { UserRole } from '@/lib/types/sidebar'
  
 // Routes anyone can hit without being signed in.
 const PUBLIC_ROUTES = ['/', '/login',  '/auth']
@@ -8,7 +8,7 @@ const PUBLIC_ROUTES = ['/', '/login',  '/auth']
 // Routes that require a specific role, beyond just being signed in.
 // Checked in order; first prefix match wins.
 const ROLE_PROTECTED_ROUTES: { prefix: string; roles: UserRole[] }[] = [
-  { prefix: '/admin/dashboard', roles: ['admin'] },
+  { prefix: '/dashboard', roles: ['admin'] },
   { prefix: '/dashboard', roles: ['agent'] },
   { prefix: '/reports', roles: ['manager'] },
 ]

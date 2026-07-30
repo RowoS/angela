@@ -1,5 +1,5 @@
 import Image from "next/image"
-import { LucideIcon } from "lucide-react";
+import { MenuItem } from "@/lib/types/sidebar"
 import {
   Sidebar,
   SidebarContent,
@@ -13,12 +13,6 @@ import {
   SidebarTrigger,
   SidebarGroupLabel
 } from "@/components/ui/sidebar"
-
-export interface MenuItem {
-  name: string
-  url: string
-  icon: LucideIcon
-}
 
 interface AppSidebarProps {
   roleMenuItems: MenuItem[];
@@ -87,8 +81,7 @@ export function AppSidebar({ roleMenuItems }: AppSidebarProps) {
 
               {roleMenuItems.map((menuItem) => (
                 <SidebarMenuItem key={menuItem.name}>
-                  <SidebarMenuButton 
-                    render={<a href={menuItem.url} />}
+                  <SidebarMenuButton
                     tooltip={menuItem.name}
                     className="group/item flex items-center gap-3.5 text-[#26242A] transition-all hover:bg-[#D1D1D1] group-data-[collapsible=icon]:justify-center! group-data-[collapsible=icon]:p-0!"
                   >
