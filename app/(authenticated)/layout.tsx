@@ -1,39 +1,28 @@
+import React from "react"
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar"
-import { 
-    LayoutDashboard,
-    Ticket,
-    CalendarDays,
-    DoorOpen,
-    ChartNoAxesColumn,
-    BookOpen,
-    Activity,
-    Settings
- } from "lucide-react";
-
-const ADMIN_MENU = [
-    { name: 'Dashboard', url: '/admin/dashboard', icon: LayoutDashboard },
-    { name: 'Tickets', url: '/admin/tickets', icon: Ticket },
-    { name: 'Calendar', url: '/admin/calendar', icon: CalendarDays },
-    { name: 'Rooms', url: '/admin/rooms', icon: DoorOpen },
-    { name: 'Reports', url: '/admin/reports', icon: ChartNoAxesColumn },
-    { name: 'Knowledge Base', url: '/admin/knowledge-base', icon: BookOpen },
-    { name: 'Activity Log', url: '/admin/activity-log', icon: Activity },
-    { name: 'Settings', url: '/admin/settings', icon: Settings },
-]
+import { ADMIN_MENU, AGENT_MENU, MANAGER_MENU } from '@/config/navigation';
+import type { UserRole } from "@/lib/types/sidebar"
 
 export default function AuthenticatedLayout({ children }: { children: React.ReactNode }) {
     // TODO(Backend): To fetch user role
-    const role = 'admin' // for testing only
+    console.log("root layout auth!")
 
-    let currentMenuItems = ADMIN_MENU
-    if (role === 'admin') currentMenuItems = ADMIN_MENU;
+    const userRole: UserRole = "admin"
+
+    // Pick the right navigation menu for this user's role
+    const currentMenuItems =
+        userRole === "admin"
+            ? ADMIN_MENU
+            : userRole === "manager"
+            ? MANAGER_MENU
+            : AGENT_MENU
 
     return (
-        <div className="bg-[#F8F8F8] w-full h-full">
+        <div className="bg-[#F8F8F8] w-full min-h-screen">
             <SidebarProvider>
                 <AppSidebar roleMenuItems={currentMenuItems} />
-                <main className="flex flex-row justify-center w-full h-full">
+                <main className="flex min-h-screen flex-row justify-center flex-1 overflow-y-auto">
                     { children }
                 </main>
             </SidebarProvider>
