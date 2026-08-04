@@ -14,7 +14,7 @@ import {
 interface WorkloadItem {
   agent: string
   in_progress: number
-  open: number
+  closed: number
 }
 
 interface AgentWorkloadCardProps {
@@ -78,7 +78,7 @@ export function AgentWorkloadCard({ data }: AgentWorkloadCardProps) {
       <div className="mt-2 flex gap-3">
         {[
           { label: "In Progress", color: "#6366f1" },
-          { label: "Open", color: "#cbd5e1" },
+          { label: "Closed", color: "#cbd5e1" },
         ].map((legend) => (
           <span
             key={legend.label}
