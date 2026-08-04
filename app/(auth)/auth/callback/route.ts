@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { getCurrentUserRole, roleHomeRoute } from '@/lib/role-actions'
+import { getCurrentUserRole, roleHomeRoute } from '@/lib/actions/role-actions'
  
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
