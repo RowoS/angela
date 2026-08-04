@@ -19,6 +19,7 @@ import {
   toActivityItems,
   toWorkloadItems,
   computeResolutionRate,
+  formatMinutes
 } from '@/lib/dashboard-adapters'
 import type {
   DashboardCounts,
@@ -27,6 +28,7 @@ import type {
   OpenedBucket,
   RecentActivity,
   AgentWorkload,
+  AvgFirstResponse
 } from '@/lib/actions/dashboard-actions'
 
 interface DashboardStatsProps {
@@ -37,6 +39,7 @@ interface DashboardStatsProps {
   initialOpened: OpenedBucket[] | null
   recentActivity: RecentActivity[] | null
   agentWorkload: AgentWorkload[] | null
+  avgFirstResponse: AvgFirstResponse | null
 }
 
 export function DashboardView({
@@ -47,10 +50,12 @@ export function DashboardView({
   initialOpened,
   recentActivity,
   agentWorkload,
+  avgFirstResponse
 }: DashboardStatsProps) {
   const isAdmin = role === 'admin'
   const router = useRouter()
   const resolutionRate = isAdmin && agentWorkload?.length ? computeResolutionRate(agentWorkload) : null
+  const avgResponseValue = avgFirstResponse && avgFirstResponse.sampleSize > 0 ? formatMinutes(avgFirstResponse.avgMinutes): '-'
 
   return (
     <div className="flex flex-col w-full">
@@ -109,7 +114,7 @@ export function DashboardView({
 
           {isAdmin && (
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
-              <StatCard2 label="Avg. First Response" value="—" icon={<Clock size={16} />} color="#6366f1" />
+              <StatCard2 label="Avg. First Response" value={avgResponseValue} icon={<Clock size={16} />} color="#6366f1" />
               <StatCard2
                 label="Resolution Rate"
                 value={resolutionRate !== null ? `${resolutionRate}%` : '—'}

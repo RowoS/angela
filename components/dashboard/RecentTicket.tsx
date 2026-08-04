@@ -12,7 +12,7 @@ interface TicketItem {
   creation_confirmed_by_qr?: boolean
   priority: Priority
   status: Status
-  employee?: {
+  employee: {
     full_name: string
   }
 }
@@ -68,7 +68,7 @@ export function RecentTicketCard({
                     {t.title}
                   </div>
                   <div className="mt-0.5 text-xs text-slate-400">
-                    {t.employee?.full_name ?? '-'}
+                    {t.employee.full_name ?? '-'}
                   </div>
                 </td>
                 <td className="px-5.5 py-2.5">
