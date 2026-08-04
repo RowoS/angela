@@ -8,12 +8,14 @@ const PRIORITY_STYLES: Record<Priority, { bgColor: string; textColor: string; do
 }
 
 const STATUS_STYLES: Record<Status, { bgColor: string; textColor: string }> = {
+    pending_confirmation: {bgColor: "#c5c6d0", textColor: "#000000"},
     open:        { bgColor: "#eff6ff", textColor: "#2563eb" },
     in_progress: { bgColor: "#f5f3ff", textColor: "#7c3aed" },
     on_hold:     { bgColor: "#fffbeb", textColor: "#d97706" },
     resolved:    { bgColor: "#f0fdf4", textColor: "#16a34a" },
     closed:      { bgColor: "#f1f5f9", textColor: "#64748b" },
     reopened:    { bgColor: "#fef2f2", textColor: "#dc2626" },
+    cancelled:   {bgColor: "#e9e4d4", textColor: "#a52a2a"},
 }
 
 const ROLE_STYLES: Record<Role, { bgColor: string; textColor: string }> = {

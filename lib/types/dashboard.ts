@@ -5,12 +5,14 @@ export type Priority =
     | "critical";
 
 export type Status =
+    | "pending_confirmation"
     | "open"
     | "in_progress"
     | "on_hold"
     | "resolved"
     | "closed"
-    | "reopened";
+    | "reopened"
+    | "cancelled";
 
 export type Role = 
     | "admin" 
