@@ -31,9 +31,15 @@ export function toRecentTicketItems(rows: RecentTicket[]) {
     title: r.title,
     priority: r.priority as Priority,
     status: r.status as Status,
-    // dashboard_recent_tickets doesn't join the requester — see note in Step 8
-    employee: { full_name: '—' },
+    employee: { full_name: r.employeeName ?? 'Employee' },
   }))
+}
+export function formatMinutes(minutes: number | null): string {
+  if (minutes === null) return '—'
+  const h = Math.floor(minutes / 60)
+  const m = Math.round(minutes % 60)
+  if (h === 0) return `${m}m`
+  return `${h}h ${m}m`
 }
 
 const ACTION_TYPE_MAP: Record<string, ActivityActionType> = {

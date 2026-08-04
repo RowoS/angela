@@ -33,6 +33,7 @@ export type RecentTicket = {
   status: string
   categoryId: string
   createdAt: string
+  employeeName: string | null
 }
 
 export async function getRecentTickets(): Promise<RecentTicket[]> {
@@ -50,8 +51,29 @@ export async function getRecentTickets(): Promise<RecentTicket[]> {
     status: r.status,
     categoryId: r.category_id,
     createdAt: r.created_at,
+    employeeName: r.employee_name
   }))
 }
+
+export type AvgFirstResponse = {
+  avgMinutes: number | null 
+  sampleSize: number
+}
+
+export async function getAvgFirstResponse(): Promise<AvgFirstResponse> {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from('dashboard_avg_first_response')
+    .select('*')
+    .maybeSingle()
+
+  if (error) throw new Error(error.message)
+  return {
+    avgMinutes: data?.avg_first_response_minutes ?? null,
+    sampleSize: data?.sample_size ?? 0,
+  }
+}
+
 
 export type CategoryBreakdown = {
   categoryId: string
