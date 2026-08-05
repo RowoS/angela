@@ -11,6 +11,7 @@ export type QueueTicket = {
   id: string
   ticket_number: string
   title: string
+  description: string
   status: TicketStatus
   priority: TicketPriority
   created_at: string
@@ -19,7 +20,7 @@ export type QueueTicket = {
   first_response_at: string | null
   resolved_at: string | null
   category: { id: string; name: string } | null
-  requester: { full_name: string; employee_no: string } | null
+  requester: { full_name: string; employee_no: string; department: string | null } | null
   assigned_to: { id: string; full_name: string | null } | null
   comment_count: number
   attachment_count: number
@@ -37,6 +38,19 @@ async function getSupabaseAndUser() {
   return { supabase, user }
 }
 
+export async function getCurrentProfile() {
+  const { supabase, user } = await getSupabaseAndUser()
+
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id, full_name, role')
+    .eq('id', user.id)
+    .single()
+
+  if (error) throw new Error(error.message)
+  return data
+}
+
 // Single query covers Queue and AssignedToMe (pass a scope). RLS on
 // `tickets` already restricts rows to what the caller may see —
 // agents see all, managers see their department, this function does
@@ -48,10 +62,10 @@ export async function getTicketQueue(opts?: { assignedToSelf?: boolean }): Promi
   let query = supabase
     .from('tickets')
     .select(`
-      id, ticket_number, title, status, priority, created_at,
+      id, ticket_number, title, description, status, priority, created_at,
       due_at, first_response_due_at, first_response_at, resolved_at,
       category:ticket_categories!tickets_category_id_fkey(id, name),
-      requester:employees!tickets_requester_id_fkey(full_name, employee_no),
+      requester:employees!tickets_requester_id_fkey(full_name, employee_no, department),
       assigned_to:profiles!tickets_assigned_to_id_fkey(id, full_name),
       comments:ticket_comments(count),
       attachments:ticket_attachments(count)
@@ -66,10 +80,6 @@ export async function getTicketQueue(opts?: { assignedToSelf?: boolean }): Promi
   const { data, error } = await query
   if (error) throw new Error(error.message)
 
-  // Explicit field-by-field construction rather than `...t as QueueTicket`.
-  // The FK hints above should make these embeds resolve as single objects,
-  // but normalizing defensively means a stray schema/typing drift fails
-  // loudly at the specific field instead of silently through a blanket cast.
   return (data ?? []).map((t): QueueTicket => {
     const category = Array.isArray(t.category) ? t.category[0] : t.category
     const requester = Array.isArray(t.requester) ? t.requester[0] : t.requester
@@ -79,6 +89,7 @@ export async function getTicketQueue(opts?: { assignedToSelf?: boolean }): Promi
       id: t.id,
       ticket_number: t.ticket_number,
       title: t.title,
+      description: t.description,
       status: t.status,
       priority: t.priority,
       created_at: t.created_at,
@@ -88,7 +99,7 @@ export async function getTicketQueue(opts?: { assignedToSelf?: boolean }): Promi
       resolved_at: t.resolved_at,
       category: category ? { id: category.id, name: category.name } : null,
       requester: requester
-        ? { full_name: requester.full_name, employee_no: requester.employee_no }
+        ? { full_name: requester.full_name, employee_no: requester.employee_no, department: requester.department }
         : null,
       assigned_to: assignedTo ? { id: assignedTo.id, full_name: assignedTo.full_name } : null,
       comment_count: t.comments?.[0]?.count ?? 0,
