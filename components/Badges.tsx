@@ -1,4 +1,5 @@
 import { Priority, Status, Role } from "@/lib/types/dashboard"
+import { SlaState} from "@/lib/actions/sla-actions"
 
 const PRIORITY_STYLES: Record<Priority, { bgColor: string; textColor: string; dot: string }> = {
     critical: { bgColor: "#fef2f2", textColor: "#dc2626", dot: "#dc2626" },
@@ -74,5 +75,33 @@ export function RoleBadge({ role }: { role: Role }) {
             {role}
     </span>
   );
+}
+
+const SLA_STYLES: Record<Exclude<SlaState, 'none'>, string> = {
+  ok: 'bg-slate-50 text-slate-500 border-slate-200',
+  warning: 'bg-orange-50 text-orange-700 border-orange-200',
+  breached: 'bg-red-50 text-red-700 border-red-200',
+}
+
+const SLA_LABELS: Record<Exclude<SlaState, 'none'>, string> = {
+  ok: 'On Track',
+  warning: 'SLA Warning',
+  breached: 'SLA Breached',
+}
+
+export function SLABadge({ state }: { state: SlaState }) {
+  if (state === 'none') return null
+  return (
+    <span
+      className={`inline-flex 
+        items-center 
+        rounded-full 
+        border px-2 py-0.5 
+        text-[11px] 
+        font-semibold ${SLA_STYLES[state]}`}
+    >
+      {SLA_LABELS[state]}
+    </span>
+  )
 }
 
