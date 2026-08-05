@@ -6,6 +6,18 @@ type Priority = Database['public']['Enums']['ticket_priority']
 type Status = Database['public']['Enums']['ticket_status']
 export type SortKey = 'ticket_number' | 'priority' | 'status' | 'created_at' | 'due_at'
 
+export type TicketStatusFilter = 
+  | 'all' 
+  | 'pending_confirmation' 
+  | 'open' 
+  | 'in_progress' 
+  | 'on_hold' 
+  | 'resolved' 
+  | 'closed' 
+  | 'reopened' 
+  | 'cancelled'
+
+
 const PRIORITY_ORDER: Record<Priority, number> = { critical: 0, high: 1, medium: 2, low: 3 }
 
 export function useTicketFilters(tickets: QueueTicket[]) {
@@ -90,5 +102,20 @@ export function useTicketFilters(tickets: QueueTicket[]) {
       categories,
       filteredTickets,
     },
+  }
+}
+
+export function useTicketFilter<T extends { status: string }>(initialTickets: T[]) {
+  const [activeFilter, setActiveFilter] = useState<TicketStatusFilter>('all')
+
+  const filteredTickets = useMemo(() => {
+    if (activeFilter === 'all') return initialTickets
+    return initialTickets.filter((ticket) => ticket.status === activeFilter)
+  }, [initialTickets, activeFilter])
+
+  return {
+    activeFilter,
+    setActiveFilter,
+    filteredTickets
   }
 }
