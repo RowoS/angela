@@ -1,11 +1,15 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import type { Database } from '@/lib/supabase/types'
+
+type TicketPriority = Database['public']['Enums']['ticket_priority']
 
 export type TicketCategory = {
   id: string
   name: string
   code: string
   parent_id: string | null
+  default_priority: TicketPriority
 }
 
 export function useTicketCategories() {
@@ -23,7 +27,7 @@ export function useTicketCategories() {
       
       const { data, error: fetchError } = await supabase
         .from('ticket_categories')
-        .select('id, name, code, parent_id')
+        .select('id, name, code, parent_id, default_priority')
         .order('name')
 
       if (fetchError) {
@@ -43,6 +47,7 @@ export function useTicketCategories() {
   const subCategories = categories.filter(c => c.parent_id === selectedParentId)
 
   return {
+    categories,
     parentCategories,
     subCategories,
     selectedParentId,
