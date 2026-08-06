@@ -42,8 +42,9 @@ export function QrCameraScanner({
       setError(null)
       try {
         await onSubmit(value)
-      } catch (err: any) {
-        setError(toFriendlyMessage(err.message) || 'Scan did not match this ticket\'s requester.')
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : String(err);
+        setError(toFriendlyMessage(errorMessage) || 'Scan did not match this ticket\'s requester.')
         // Give the reader a moment to see the error before the camera is
         // ready to pick up another badge — a lingering QR code still in
         // frame would otherwise immediately re-trigger the same submit.

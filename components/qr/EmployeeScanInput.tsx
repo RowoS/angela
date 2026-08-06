@@ -49,8 +49,9 @@ export function EmployeeScanInput({
 
     try {
       await onSubmit(trimmed)
-    } catch (err: any) {
-      setError(toFriendlyMessage(err.message) || 'Scan did not match this ticket\'s requester.')
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : String(err)
+      setError(toFriendlyMessage(errorMessage) || 'Scan did not match this ticket\'s requester.')
     } finally {
       setIsSubmitting(false)
     }

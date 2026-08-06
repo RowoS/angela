@@ -16,13 +16,14 @@ export function TicketCloseActions({ isUpdating, onQrClose, onOverrideClose }: T
   const [reason, setReason] = useState('')
   const [error, setError] = useState<string | null>(null)
 
-  const submitOverride = async (e: React.FormEvent) => {
+  const submitOverride = async (e: React.SubmitEvent) => {
     e.preventDefault()
     setError(null)
     try {
       await onOverrideClose(reason.trim() || undefined)
-    } catch (err: any) {
-      setError(err.message || 'Override close failed.')
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      setError(errorMessage || 'Override close failed.');
     }
   }
 

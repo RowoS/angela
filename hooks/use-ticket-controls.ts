@@ -11,7 +11,7 @@ import {
 // through one of the two functions below, so there's exactly one
 // place each records what happened (QR-confirmed vs. override) rather
 // than a raw update that leaves no trace of which path was taken.
-export type ManualStatus = 'open' | 'in_progress' | 'on_hold' | 'resolved' | 'reopened'
+export type ManualStatus = 'open' | 'in_progress' | 'on_hold' | 'resolved' | 'reopened' 
 export type ValidStatus = ManualStatus | 'closed'
 
 export function useTicketControls(ticketId: string, initialStatus: ValidStatus, initialAssigneeId: string | null) {
@@ -25,8 +25,9 @@ export function useTicketControls(ticketId: string, initialStatus: ValidStatus, 
 
     try {
       await updateTicketStatus(ticketId, newStatus)
-    } catch (err: any) {
-      setError(err.message || 'Failed to update status.')
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      setError(errorMessage|| 'Failed to update status.')
     } finally {
       setIsUpdating(false)
     }
@@ -39,8 +40,9 @@ export function useTicketControls(ticketId: string, initialStatus: ValidStatus, 
 
     try {
       await assignTicket(ticketId, assigneeId || null)
-    } catch (err: any) {
-      setError(err.message || 'Failed to assign ticket.')
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      setError(errorMessage || 'Failed to assign ticket.')
     } finally {
       setIsUpdating(false)
     }
@@ -52,8 +54,9 @@ export function useTicketControls(ticketId: string, initialStatus: ValidStatus, 
 
     try {
       await closeTicketViaQr(ticketId, scannedEmployeeNo)
-    } catch (err: any) {
-      setError(err.message || 'QR close failed.')
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      setError(errorMessage|| 'QR close failed.')
       throw err // let the caller keep its own form open on failure
     } finally {
       setIsUpdating(false)
@@ -66,8 +69,9 @@ export function useTicketControls(ticketId: string, initialStatus: ValidStatus, 
 
     try {
       await overrideCloseTicket(ticketId, reason)
-    } catch (err: any) {
-      setError(err.message || 'Override close failed.')
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      setError(errorMessage|| 'Override close failed.')
       throw err
     } finally {
       setIsUpdating(false)

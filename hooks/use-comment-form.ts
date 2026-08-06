@@ -22,8 +22,9 @@ export function useCommentForm(ticketId: string) {
       // Reset form state on success
       setBody('')
       setIsInternal(false)
-    } catch (err: any) {
-      setError(err.message || 'Failed to post comment.')
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      setError(errorMessage || 'Failed to post comment.')
     } finally {
       setIsSubmitting(false)
     }
