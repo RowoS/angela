@@ -1,9 +1,10 @@
 import { useState } from 'react'
-import { uploadAttachment, deleteAttachment } from '@/lib/actions/ticket-actions'
+import { uploadAttachment, deleteAttachment, getAttachmentDownloadUrl } from '@/lib/actions/ticket-actions'
 
 export function useAttachments(ticketId: string) {
   const [isUploading, setIsUploading] = useState(false)
   const [isDeleting, setIsDeleting] = useState<string | null>(null)
+  const [isDownloading, setIsDownloading] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -17,13 +18,12 @@ export function useAttachments(ticketId: string) {
     formData.append('file', file)
 
     try {
-      // Business Logic: Triggers server action for file upload[cite: 4]
       await uploadAttachment(ticketId, formData)
-    } catch (err: any) {
-      setError(err.message || 'Failed to upload attachment.')
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      setError(errorMessage || 'Failed to upload attachment.')
     } finally {
       setIsUploading(false)
-      // Reset the file input
       e.target.value = ''
     }
   }
@@ -34,18 +34,36 @@ export function useAttachments(ticketId: string) {
 
     try {
       await deleteAttachment(ticketId, attachmentId, storagePath)
-    } catch (err: any) {
-      setError(err.message || 'Failed to delete attachment.')
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      setError(errorMessage || 'Failed to delete attachment.')
     } finally {
       setIsDeleting(null)
+    }
+  }
+
+  const handleDownload = async (attachmentId: string) => {
+    setIsDownloading(attachmentId)
+    setError(null)
+
+    try {
+      const url = await getAttachmentDownloadUrl(ticketId, attachmentId)
+      window.open(url, '_blank', 'noopener,noreferrer')
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      setError(errorMessage || 'Failed to download attachment.')
+    } finally {
+      setIsDownloading(null)
     }
   }
 
   return {
     isUploading,
     isDeleting,
+    isDownloading,
     error,
     handleUpload,
-    handleDelete
+    handleDelete,
+    handleDownload,
   }
 }

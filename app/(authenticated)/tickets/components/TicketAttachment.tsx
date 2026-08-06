@@ -28,10 +28,9 @@ function formatBytes(bytes: number, decimals = 2) {
 }
 
 export function TicketAttachments({ ticketId, ticketStatus, attachments }: TicketAttachmentsProps) {
-  const { isUploading, isDeleting, error, handleUpload, handleDelete } = useAttachments(ticketId)
+  const { isUploading, isDeleting, isDownloading, error, handleUpload, handleDelete, handleDownload } =
+    useAttachments(ticketId)
 
-  // Defensive UI: Align presentation with the RLS policy defined in 006_comments_attachments_watchers.sql.
-  // Deletion is strictly forbidden once a ticket leaves the 'pending_confirmation' state.
   const canDelete = ticketStatus === 'pending_confirmation'
 
   return (
@@ -53,17 +52,28 @@ export function TicketAttachments({ ticketId, ticketStatus, attachments }: Ticke
                     {formatBytes(file.size_bytes)} • Uploaded by {file.uploaded_by?.full_name || 'Unknown'}
                   </span>
                 </div>
-                
-                {canDelete && (
+
+                <div className="flex items-center space-x-3">
                   <button
                     type="button"
-                    onClick={() => handleDelete(file.id, file.storage_path)}
-                    disabled={isDeleting === file.id || isUploading}
-                    className="text-red-600 hover:text-red-800 disabled:opacity-50 font-medium text-xs transition-colors"
+                    onClick={() => handleDownload(file.id)}
+                    disabled={isDownloading === file.id}
+                    className="text-blue-600 hover:text-blue-800 disabled:opacity-50 font-medium text-xs transition-colors"
                   >
-                    {isDeleting === file.id ? 'Deleting...' : 'Delete'}
+                    {isDownloading === file.id ? 'Preparing...' : 'Download'}
                   </button>
-                )}
+
+                  {canDelete && (
+                    <button
+                      type="button"
+                      onClick={() => handleDelete(file.id, file.storage_path)}
+                      disabled={isDeleting === file.id || isUploading}
+                      className="text-red-600 hover:text-red-800 disabled:opacity-50 font-medium text-xs transition-colors"
+                    >
+                      {isDeleting === file.id ? 'Deleting...' : 'Delete'}
+                    </button>
+                  )}
+                </div>
               </li>
             ))}
           </ul>
@@ -73,12 +83,7 @@ export function TicketAttachments({ ticketId, ticketStatus, attachments }: Ticke
       <div className="pt-2">
         <label className="inline-block px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-200 cursor-pointer transition-colors disabled:opacity-50">
           {isUploading ? 'Uploading...' : '+ Add File'}
-          <input
-            type="file"
-            className="hidden"
-            onChange={handleUpload}
-            disabled={isUploading}
-          />
+          <input type="file" className="hidden" onChange={handleUpload} disabled={isUploading} />
         </label>
       </div>
     </div>
