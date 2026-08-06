@@ -196,7 +196,7 @@ export async function postComment(ticketId: string, body: string, isInternal: bo
 
 // Attachments
 
-export async function uploadAttachment(ticketId: string, formData: FormData) {
+export async function uploadAttachment(ticketId: string | null, formData: FormData) {
   const { supabase, user } = await getSupabaseAndUser()
 
   const file = formData.get('file') as File
@@ -232,7 +232,7 @@ export async function uploadAttachment(ticketId: string, formData: FormData) {
 }
 
 export async function getAttachmentDownloadUrl(
-  ticketId: string,
+  ticketId: string | null,
   attachmentId: string
 ): Promise<string> {
   const { supabase } = await getSupabaseAndUser()
@@ -264,7 +264,7 @@ export async function getAttachmentDownloadUrl(
 }
 
 export async function deleteAttachment(
-  ticketId: string,
+  ticketId: string | null,
   attachmentId: string,
   storagePath: string
 ) {

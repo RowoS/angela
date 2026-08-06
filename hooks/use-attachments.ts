@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { uploadAttachment, deleteAttachment, getAttachmentDownloadUrl } from '@/lib/actions/ticket-actions'
 
-export function useAttachments(ticketId: string) {
+export function useAttachments(ticketId: string | null) {
   const [isUploading, setIsUploading] = useState(false)
   const [isDeleting, setIsDeleting] = useState<string | null>(null)
   const [isDownloading, setIsDownloading] = useState<string | null>(null)

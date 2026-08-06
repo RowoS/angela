@@ -1,23 +1,23 @@
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import DashboardHeader from '@/components/DashboardHeader'
-import { getTicketDetail } from '@/lib/actions/ticket-actions'
-import { ManualConfirmationFallback } from '@/app/(authenticated)/tickets/components/ManualConfirmationFallback'
+import { getTicketDetail, getTicketAttachments } from '@/lib/actions/ticket-actions'
+import { PendingTicketClientView } from '@/app/(authenticated)/tickets/components/PendingTicketClientView'
 
 export default async function PendingTicketPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const ticket = await getTicketDetail(id)
+
   if (!ticket) notFound()
+  if (ticket.status !== 'pending_confirmation') redirect(`/tickets/${id}`)
+
+  const attachments = await getTicketAttachments(id)
 
   return (
     <div className="flex flex-col w-full">
       <DashboardHeader menuItem={ticket.ticket_number} />
-      <div className="flex flex-col items-center gap-4 p-10">
-        <p className="text-sm text-slate-500">
-          <strong className="text-slate-900">{ticket.title}</strong> is awaiting the requester&apos;s QR
-          confirmation before it enters the queue.
-        </p>
-        <ManualConfirmationFallback ticketId={ticket.id} />
-      </div>
+      
+      {/* Hand off the rendering to the Client Component */}
+      <PendingTicketClientView ticket={ticket} attachments={attachments} />
     </div>
   )
 }
