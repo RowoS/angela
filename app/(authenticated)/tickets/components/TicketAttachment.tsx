@@ -27,6 +27,24 @@ function formatBytes(bytes: number, decimals = 2) {
   return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`
 }
 
+function truncateFilename(filename: string, maxLength = 30) {
+  if (filename.length <= maxLength) return filename
+
+  const extensionIndex = filename.lastIndexOf('.')
+  
+  if (extensionIndex === -1 || extensionIndex === 0) {
+    return filename.substring(0, maxLength) + '...'
+  }
+
+  const extension = filename.substring(extensionIndex)
+  const name = filename.substring(0, extensionIndex)
+  
+
+  const allowedNameLength = maxLength - extension.length - 3
+
+  return name.substring(0, allowedNameLength) + '...' + extension
+}
+
 export function TicketAttachments({ ticketId, ticketStatus, attachments }: TicketAttachmentsProps) {
   const { isUploading, isDeleting, isDownloading, error, handleUpload, handleDelete, handleDownload } =
     useAttachments(ticketId)
@@ -45,8 +63,8 @@ export function TicketAttachments({ ticketId, ticketStatus, attachments }: Ticke
             {attachments.map((file) => (
               <li key={file.id} className="p-3 flex items-center justify-between text-sm">
                 <div className="flex flex-col">
-                  <span className="font-medium text-gray-900 truncate max-w-xs md:max-w-md">
-                    {file.original_filename}
+                  <span className="font-medium text-gray-900 truncate max-w-xs md:max-w-md" title={file.original_filename}>
+                    {truncateFilename(file.original_filename, 35)}
                   </span>
                   <span className="text-xs text-gray-500">
                     {formatBytes(file.size_bytes)} • Uploaded by {file.uploaded_by?.full_name || 'Unknown'}
