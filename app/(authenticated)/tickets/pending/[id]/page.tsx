@@ -1,0 +1,23 @@
+import { notFound, redirect } from 'next/navigation'
+import DashboardHeader from '@/components/DashboardHeader'
+import { getTicketDetail, getTicketAttachments } from '@/lib/actions/ticket-actions'
+import { PendingTicketClientView } from '@/app/(authenticated)/tickets/components/PendingTicketClientView'
+
+export default async function PendingTicketPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  const ticket = await getTicketDetail(id)
+
+  if (!ticket) notFound()
+  if (ticket.status !== 'pending_confirmation') redirect(`/tickets/${id}`)
+
+  const attachments = await getTicketAttachments(id)
+
+  return (
+    <div className="flex flex-col w-full">
+      <DashboardHeader menuItem={ticket.ticket_number} />
+      
+      {/* Hand off the rendering to the Client Component */}
+      <PendingTicketClientView ticket={ticket} attachments={attachments} />
+    </div>
+  )
+}
