@@ -34,7 +34,9 @@ export function UpcomingEvents({ events, isLoading, onEventClick }: Props) {
                 <div className="truncate text-sm font-semibold text-slate-900">{event.title}</div>
                 <div className="mt-0.5 truncate text-xs text-slate-400">
                   {format(new Date(event.starts_at), 'MMM d')} ·{' '}
-                  {format(new Date(event.starts_at), 'h:mm a')} – {format(new Date(event.ends_at), 'h:mm a')} ·{' '}
+                  {format(new Date(event.starts_at), 'h:mm a')} - 
+                  {format(new Date(event.ends_at), 'MMM d')}·{' '}
+                  {format(new Date(event.ends_at), 'h:mm a')} ·{' '}
                   {event.owner.full_name}
                 </div>
               </div>
