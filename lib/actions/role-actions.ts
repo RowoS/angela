@@ -1,14 +1,14 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { UserRole } from '../types/sidebar'
+import { Role } from '../types/dashboard'
  
 // Where each role lands after authenticating.
-const ROLE_HOME_ROUTES: Record<UserRole, string> = {
+const ROLE_HOME_ROUTES: Record<Role, string> = {
   admin: '/dashboard',
   agent: '/dashboard',
   manager: '/dashboard',
 }
  
-export function roleHomeRoute(role: UserRole | null | undefined): string {
+export function roleHomeRoute(role: Role | null | undefined): string {
   return ROLE_HOME_ROUTES[role ?? 'agent'] ?? '/dashboard'
 }
  
@@ -22,7 +22,7 @@ export function roleHomeRoute(role: UserRole | null | undefined): string {
 export async function getCurrentUserRole(
   supabase: SupabaseClient,
   userId: string
-): Promise<UserRole | null> {
+): Promise<Role | null> {
   const { data, error } = await supabase
     .from('profiles')
     .select('role')
@@ -30,7 +30,7 @@ export async function getCurrentUserRole(
     .single()
  
   if (error || !data) return null
-  return data.role as UserRole
+  return data.role as Role
 }
  
 /**
@@ -45,8 +45,8 @@ export async function getCurrentUserRole(
 export async function requireRole(
   supabase: SupabaseClient,
   userId: string,
-  allowed: UserRole[]
-): Promise<UserRole> {
+  allowed: Role[]
+): Promise<Role> {
   const role = await getCurrentUserRole(supabase, userId)
   if (!role || !allowed.includes(role)) {
     throw new Error('Not authorized')
