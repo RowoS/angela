@@ -4,11 +4,8 @@ import Image from "next/image"
 import { useState } from "react"
 import { Role, ROLE } from "@/lib/types/dashboard"
 import { usePathname, useRouter } from "next/navigation"
-import { MenuItem, ROLE_MENUS } from "@/lib/types/sidebar"
-import {
-  ChevronRight,
-  TicketIcon
-} from "lucide-react"
+import { MenuItem, ROLE_MENUS, ROLE_AVATAR_COLORS } from "@/lib/types/sidebar"
+import { ChevronDown, LogOut } from "lucide-react"
 import {
   useSidebar,
   Sidebar,
@@ -26,6 +23,17 @@ import {
   SidebarMenuSubItem,
   SidebarMenuSubButton,
 } from "@/components/ui/sidebar"
+import {
+  AlertDialog,
+  AlertDialogTrigger,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogAction,
+  AlertDialogCancel
+} from "@/components/ui/alert-dialog"
 import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible"
 
 const activeText = "bg-linear-to-r from-[#008AAC] to-[#71BED1] bg-clip-text text-transparent font-medium"
@@ -33,11 +41,19 @@ const hoverText = "group-hover/item:bg-linear-to-r group-hover/item:from-[#008AA
 const activeStroke = "stroke-[url(#sidebar-icon-gradient)]"
 const hoverStroke = "group-hover/item:stroke-[url(#sidebar-icon-gradient)]"
 
-export function AppSidebar({ role }: { role: Role | string }) {
+interface AppSidebarUser {
+  name: string
+  avatarUrl?: string | null
+}
+
+export function AppSidebar({ role, user }: { role: Role | string; user: AppSidebarUser }) {
   const pathname = usePathname()
   const router = useRouter()
   const { state, isMobile, setOpenMobile } = useSidebar()
   const isIconOnly = state === "collapsed" && !isMobile
+
+  // TESTING PURPOSE ONLY: Subject for review and change
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
 
   const currentMenuItems = ROLE_MENUS[role as Role] || []
 
@@ -52,13 +68,18 @@ export function AppSidebar({ role }: { role: Role | string }) {
       ? item.subMenuItems.some((sub) => pathname.startsWith(sub.href))
       : pathname === item.href
 
-  // Single navigation helper used by every menu button. Since we're not
-  // using <Link>, this is what actually moves the page — router.push does
-  // a client-side transition, same as Link would, it's just triggered from
-  // a <button>'s onClick instead of an <a>'s href.
   const navigate = (href: string) => {
     router.push(href)
     if (isMobile) setOpenMobile(false)
+  }
+
+  // TESTING PURPOSE ONLY: Subject for review and change
+  const handleLogout = async () => {
+    setIsLoggingOut(true)
+    const { createClient } = await import("@/lib/supabase/client")
+    const supabase = createClient()
+    await supabase.auth.signOut()
+    router.push("/login")
   }
 
   return (
@@ -69,8 +90,6 @@ export function AppSidebar({ role }: { role: Role | string }) {
         </div>
 
         <div className="flex w-full items-center justify-between transition-opacity duration-200 group-data-[collapsible=icon]:justify-center peer-hover/trigger:opacity-0">
-          {/* Logo/home button — a real <button> with onClick, same reasoning
-              as every menu item below: no <a>/<button> nesting anywhere. */}
           <button
             type="button"
             onClick={() => navigate("/")}
@@ -131,10 +150,6 @@ export function AppSidebar({ role }: { role: Role | string }) {
                 const active = isActive(menuItem)
                 const hasSubItems = !!menuItem.subMenuItems?.length
 
-                // --- Simple item: no sub-items ---
-                // SidebarMenuButton renders its own <button> (no asChild),
-                // so we drive navigation from its onClick instead of
-                // wrapping/nesting a <Link> inside or around it.
                 if (!hasSubItems) {
                   return (
                     <SidebarMenuItem key={menuItem.name}>
@@ -146,7 +161,7 @@ export function AppSidebar({ role }: { role: Role | string }) {
                       >
                         <span className="flex flex-row justify-center p-1">
                           <menuItem.icon
-                            className={`shrink-0 transition-all ${hoverStroke} ${
+                            className={`size-5 shrink-0 transition-all ${hoverStroke} ${
                               active ? activeStroke : ""
                             }`}
                           />
@@ -163,25 +178,20 @@ export function AppSidebar({ role }: { role: Role | string }) {
                   )
                 }
 
-                // --- Parent item with sub-items (e.g. "Ticket") ---
                 const isOpen = openItem === menuItem.name
                 const defaultHref = menuItem.subMenuItems?.[0]?.href // "Queue"
 
                 return (
-                  <Collapsible
-                    key={menuItem.name}
-                    open={isOpen}
-                    className="group/collapsible"
-                  >
-                    <SidebarMenuItem>
+                  <Collapsible key={menuItem.name} open={isOpen}>
+                    <SidebarMenuItem className="gap-y-px">
                       {isIconOnly ? (
-                        // Collapsed to icons: no room for a submenu, so this
-                        // button just navigates straight to the default
-                        // sub-item (Queue) instead of expanding anything.
                         <SidebarMenuButton
                           tooltip={menuItem.name}
                           isActive={active}
-                          onClick={() => defaultHref && navigate(defaultHref)}
+                          onClick={() => {
+                            setOpenItem(menuItem.name)
+                            if (defaultHref) navigate(defaultHref)
+                          }}
                           className="group/item flex items-center gap-3.5 text-[#26242A] transition-all hover:bg-[#D1D1D1] data-[active=true]:bg-[#D1D1D1] group-data-[collapsible=icon]:justify-center! group-data-[collapsible=icon]:p-0!"
                         >
                           <span className="flex flex-row justify-center p-1">
@@ -193,18 +203,32 @@ export function AppSidebar({ role }: { role: Role | string }) {
                           </span>
                         </SidebarMenuButton>
                       ) : (
-                        // Expanded: this button ONLY toggles the submenu open/
-                        // closed — it does not navigate. That mirrors how a
-                        // parent nav item with children usually behaves, and
-                        // sidesteps needing a second nested control on the
-                        // same element to do two different jobs.
+                        // NOTE for debugging the "doesn't close" report:
+                        // this handler is the ONLY thing in the whole file
+                        // that calls setOpenItem for this branch. If a
+                        // console.log at the top of this onClick doesn't
+                        // fire on click, the click isn't reaching this
+                        // button at all (stale bundle, wrong file actually
+                        // imported, or something intercepting the click
+                        // higher up) — that's a build/wiring problem, not
+                        // a logic problem, and no amount of editing this
+                        // function will fix it. If it DOES fire but the UI
+                        // still doesn't visually close, log `isOpen` and
+                        // `openItem` right after — that tells us whether
+                        // state is updating but not re-rendering (a key/
+                        // memoization issue) vs. not updating at all.
                         <SidebarMenuButton
                           tooltip={menuItem.name}
                           isActive={active}
-                          onClick={() =>
-                            setOpenItem(isOpen ? null : menuItem.name)
-                          }
-                          className="group/item flex items-center gap-3.5 text-[#26242A] transition-all hover:bg-[#D1D1D1] data-[active=true]:bg-[#D1D1D1]"
+                          onClick={() => {
+                            console.log("Tickets clicked, isOpen was:", isOpen)
+                            if (isOpen) {
+                              setOpenItem(null)
+                            } else {
+                              setOpenItem(menuItem.name)
+                              if (defaultHref) navigate(defaultHref)
+                            }
+                          }}
                         >
                           <span className="flex flex-row justify-center p-1">
                             <menuItem.icon
@@ -220,9 +244,26 @@ export function AppSidebar({ role }: { role: Role | string }) {
                           >
                             {menuItem.name}
                           </span>
-                          <ChevronRight
+
+                          {typeof menuItem.badge === "number" && (
+                            <span className="flex items-center justify-center size-5 rounded-full bg-[#008AAC] text-[#26343A] text-xs font-semibold shrink-0">
+                              {menuItem.badge}
+                            </span>
+                          )}
+
+                          {/*
+                            Single icon that rotates, instead of swapping
+                            between ChevronUp/ChevronDown. Two separate
+                            icon components can't be animated between —
+                            React unmounts one and mounts the other, so
+                            there's no shared element for the transition
+                            to interpolate. Rotating one icon 180° gives
+                            the same visual end states with an actual
+                            animation in between.
+                          */}
+                          <ChevronDown
                             className={`ml-auto size-4 shrink-0 transition-transform duration-200 ${
-                              isOpen ? "rotate-90" : ""
+                              isOpen ? "rotate-180" : "rotate-0"
                             }`}
                           />
                         </SidebarMenuButton>
@@ -230,7 +271,7 @@ export function AppSidebar({ role }: { role: Role | string }) {
 
                       {!isIconOnly && (
                         <CollapsibleContent>
-                          <SidebarMenuSub>
+                          <SidebarMenuSub className="pl-7 flex gap-y-0.75">
                             {menuItem.subMenuItems!.map((sub) => {
                               const subActive = pathname === sub.href
                               return (
@@ -238,16 +279,23 @@ export function AppSidebar({ role }: { role: Role | string }) {
                                   <SidebarMenuSubButton
                                     isActive={subActive}
                                     onClick={() => navigate(sub.href)}
-                                    className="flex items-center gap-2.5 data-[active=true]:bg-[#D1D1D1]"
+                                    className="h-9 px-4"
                                   >
-                                    <TicketIcon
-                                      className={`size-3.5 shrink-0 ${
+                                    <sub.icon
+                                      className={`size-3 shrink-0 ${
                                         subActive ? "stroke-[#008AAC]" : "stroke-[#26242A]"
                                       }`}
                                     />
-                                    <span className={subActive ? activeText : ""}>
+                                    <span
+                                      className={`flex-1 text-left text-[13px] ${
+                                        subActive ? activeText : `text-[#26242A] ${hoverText}`
+                                      }`}
+                                    >
                                       {sub.name}
                                     </span>
+                                    {sub.trailingIcon && (
+                                      <sub.trailingIcon className="size-3 shrink-0 stroke-[#008AAC]" />
+                                    )}
                                   </SidebarMenuSubButton>
                                 </SidebarMenuSubItem>
                               )
@@ -263,7 +311,47 @@ export function AppSidebar({ role }: { role: Role | string }) {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter />
+
+      <SidebarFooter className="flex-row p-2 w-full shadow-[0_-0.5px_0_0_rgba(255,255,255,0.3)] relative flex items-center justify-between group-data-[collapsible=icon]:justify-center">
+        <div className="flex flex-1 items-center justify-between gap-2 group-data-[collapsible=icon]:justify-center">
+          {/* Avatar + name — hidden entirely when icon-collapsed, same
+              pattern as the logo row in the header, since there's no room
+              for the name at that width. */}
+          <div className="flex items-center gap-2.5 min-w-0 group-data-[collapsible=icon]:hidden">
+            <div
+              className="flex size-9 shrink-0 items-center justify-center rounded-full text-sm font-semibold text-white"
+              style={{ backgroundColor: ROLE_AVATAR_COLORS[role as Role] ?? "#6B7280" }}
+            >
+              {user.name.charAt(0).toUpperCase()}
+            </div>
+            <span className="truncate text-sm font-medium text-[#26242A]">{user.name}</span>
+          </div>
+ 
+          <AlertDialog>
+            <AlertDialogTrigger
+              aria-label="Log out"
+              className="group/logout flex size-8 shrink-0 items-center justify-center rounded-md transition-colors hover:bg-[#008AAC]"
+            >
+              <LogOut className="size-4 stroke-[#26242A] transition-colors group-hover/logout:stroke-white" />
+            </AlertDialogTrigger>
+ 
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Log out of Sci.Port?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  You&apos;ll need to sign in again to access your tickets and dashboard.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel disabled={isLoggingOut}>Cancel</AlertDialogCancel>
+                <AlertDialogAction className="bg-[#008AAC]" onClick={handleLogout} disabled={isLoggingOut}>
+                  {isLoggingOut ? "Logging out…" : "Log out"}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
+      </SidebarFooter>
     </Sidebar>
   )
 }
