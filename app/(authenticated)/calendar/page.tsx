@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { getEventOwners } from '@/lib/actions/calendar-actions';
 import { CalendarShell } from './components/CalendarShell';
+import DashboardHeader from '@/components/DashboardHeader';
 
 export const metadata = {
   title: 'Calendar',
@@ -42,26 +43,30 @@ export default async function CalendarPage() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-6xl p-6 md:p-8">
-      <div className="mb-6">
-        <h1 className="text-lg font-bold text-slate-900">Calendar</h1>
-        <p className="mt-1 text-sm text-slate-500">
-          Track maintenance windows, outages, site visits, and staff availability.
-        </p>
+    <>
+      <div className='flex flex-col w-full'>
+        <DashboardHeader menuItem='Calendar' />
+        <div className="mx-auto w-full max-w-6xl p-6 md:p-8">
+          <div className="mb-6">
+            <p className="mt-1 text-sm text-slate-500">
+              Track maintenance windows, outages, site visits, and staff availability.
+            </p>
+          </div>
+
+          {ownersError && (
+            <p className="mb-4 rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-700">
+              Owner filter unavailable: {ownersError}
+            </p>
+          )}
+
+          <CalendarShell
+            currentUserId={user.id}
+            currentUserRole={profile.role}
+            currentUserDepartment={profile.department}
+            owners={owners}
+          />
+        </div>
       </div>
-
-      {ownersError && (
-        <p className="mb-4 rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-700">
-          Owner filter unavailable: {ownersError}
-        </p>
-      )}
-
-      <CalendarShell
-        currentUserId={user.id}
-        currentUserRole={profile.role}
-        currentUserDepartment={profile.department}
-        owners={owners}
-      />
-    </div>
+    </>
   );
 }
