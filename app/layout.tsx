@@ -19,17 +19,14 @@ export const metadata: Metadata = {
   description: "IT Support Ticket Management System",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: { children: React.ReactNode;}) {
+  console.log("root layout!")
   return (
     <html
       lang="en"
-      className={cn("h-full", "antialiased", inter.variable, redHatDisplay.variable)}
+      className={cn("antialiased", inter.variable, redHatDisplay.variable)}
     >
-      <body className="min-h-full flex flex-col">
+      <body className="flex flex-col min-h-screen bg-[#F8F8F8]">
         {children}
       </body>
     </html>
