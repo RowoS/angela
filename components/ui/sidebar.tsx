@@ -199,7 +199,9 @@ function Sidebar({
             <SheetTitle>Sidebar</SheetTitle>
             <SheetDescription>Displays the mobile sidebar.</SheetDescription>
           </SheetHeader>
-          <div className="flex h-full w-full flex-col">{children}</div>
+            <div className="flex h-full w-full flex-col bg-linear-to-r from-[#008AAC] to-[#71BED1] ring-white/30 ring-[0.5px] shadow-black/25 shadow-md">
+              {children}
+            </div>
         </SheetContent>
       </Sheet>
     )
@@ -401,7 +403,7 @@ function SidebarGroupLabel({
       {
         className: cn(
           "flex h-8 shrink-0 items-center rounded-md px-2 text-xs font-medium text-sidebar-foreground/70 ring-sidebar-ring outline-hidden transition-[margin,opacity] duration-200 ease-linear group-data-[collapsible=icon]:-mt-8 group-data-[collapsible=icon]:opacity-0 focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0",
-          "text-black/50 font-semibold",
+          "text-black/40 font-semibold text-[11px]",
           className
         ),
       },
@@ -426,6 +428,7 @@ function SidebarGroupAction({
       {
         className: cn(
           "absolute top-3.5 right-3 flex aspect-square w-5 items-center justify-center rounded-md p-0 text-sidebar-foreground ring-sidebar-ring outline-hidden transition-transform group-data-[collapsible=icon]:hidden after:absolute after:-inset-2 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 md:after:hidden [&>svg]:size-4 [&>svg]:shrink-0",
+          "[&>svg]:size-4",
           className
         ),
       },
@@ -458,7 +461,10 @@ function SidebarMenu({ className, ...props }: React.ComponentProps<"ul">) {
     <ul
       data-slot="sidebar-menu"
       data-sidebar="menu"
-      className={cn("flex w-full min-w-0 flex-col gap-1", className)}
+      className={cn("flex w-full min-w-0 flex-col gap-1",
+        "gap-y-0.75",
+        className
+      )}
       {...props}
     />
   )
@@ -518,6 +524,7 @@ function SidebarMenuButton({
         className: cn(
           sidebarMenuButtonVariants({ variant, size }),
           "flex flex-row px-4 py-3.5 h-9",
+          "group/item flex items-center gap-3.5 text-[#26242A] transition-all hover:bg-[#D1D1D1] data-[active=true]:bg-[#D1D1D1]",
           className
         ),
       },
@@ -646,7 +653,7 @@ function SidebarMenuSub({ className, ...props }: React.ComponentProps<"ul">) {
       data-slot="sidebar-menu-sub"
       data-sidebar="menu-sub"
       className={cn(
-        "mx-3.5 flex min-w-0 translate-x-px flex-col gap-1 border-l border-sidebar-border px-2.5 py-0.5 group-data-[collapsible=icon]:hidden",
+        "ml-3.5 flex min-w-0 translate-x-px flex-col gap-1 border-l border-sidebar-border pl-2.5 py-0.5 group-data-[collapsible=icon]:hidden",
         className
       )}
       {...props}
@@ -685,6 +692,7 @@ function SidebarMenuSubButton({
       {
         className: cn(
           "flex h-7 min-w-0 -translate-x-px items-center gap-2 overflow-hidden rounded-md px-2 text-sidebar-foreground ring-sidebar-ring outline-hidden group-data-[collapsible=icon]:hidden hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[size=md]:text-sm data-[size=sm]:text-xs data-active:bg-sidebar-accent data-active:text-sidebar-accent-foreground [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 [&>svg]:text-sidebar-accent-foreground",
+          "group/item flex items-center gap-3.5 text-[#26242A] transition-all hover:bg-[#D1D1D1] data-[active=true]:bg-[#D1D1D1] [&>svg]:size-3",
           className
         ),
       },
