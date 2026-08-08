@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { eachDayOfInterval, endOfWeek, format, isSameDay, isToday, startOfWeek } from 'date-fns';
+import { eachDayOfInterval, endOfWeek, format, isToday, startOfWeek, startOfDay, endOfDay } from 'date-fns';
 import { HOUR_HEIGHT, GRID_START_HOUR, GRID_END_HOUR, layoutDayEvents } from '@/lib/calendar-time-grid';
 import { eventTypeStyle, PANEL } from '@/lib/calendar-styles';
 import type { getEvents } from '@/lib/actions/calendar-actions';
@@ -47,8 +47,16 @@ export function CalendarWeekView({ weekOf, events, onSlotClick, onEventClick }: 
             ))}
           </div>
 
-          {days.map((day) => {
-            const positioned = layoutDayEvents(events.filter((e) => isSameDay(new Date(e.starts_at), day)), day);
+            {days.map((day) => {
+              
+            const positioned = layoutDayEvents(
+              events.filter((e) => {
+                const start = startOfDay(new Date(e.starts_at));
+                const end = endOfDay(new Date(e.ends_at));
+                return day >= start && day <= end;
+              }),
+              day
+            );
 
             return (
               <div key={day.toISOString()} className="relative border-l border-slate-100" style={{ height: HOUR_HEIGHT * HOURS.length }}>

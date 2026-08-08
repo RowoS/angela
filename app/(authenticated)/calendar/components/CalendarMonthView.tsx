@@ -1,6 +1,6 @@
 'use client';
 
-import { eachDayOfInterval, endOfMonth, endOfWeek, format, isSameDay, isSameMonth, isToday, startOfMonth, startOfWeek } from 'date-fns';
+import { eachDayOfInterval, endOfMonth, endOfWeek, format, isSameMonth, isToday, startOfMonth, startOfWeek, startOfDay, endOfDay } from 'date-fns';
 import { eventTypeStyle, PANEL } from '@/lib/calendar-styles';
 import type { getEvents } from '@/lib/actions/calendar-actions';
 
@@ -30,7 +30,13 @@ export function CalendarMonthView({ month, events, onDayClick, onEventClick }: P
 
       <div className="grid grid-cols-7">
         {days.map((day, i) => {
-          const dayEvents = events.filter((e) => isSameDay(new Date(e.starts_at), day));
+            
+            const dayEvents = events.filter((e) => {
+            const start = startOfDay(new Date(e.starts_at));
+            const end = endOfDay(new Date(e.ends_at));
+            return day >= start && day <= end;
+          });
+
           const inMonth = isSameMonth(day, month);
           const isWeekendCol = i % 7 === 0 || i % 7 === 6;
           const today = isToday(day);
