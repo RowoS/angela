@@ -9,7 +9,7 @@ import {
   getAgentWorkload,
   getAvgFirstResponse,
 } from '@/lib/actions/dashboard-actions'
-import { DashboardView } from "@/components/dashboard/DashboardView"
+import DashboardView from "@/components/dashboard/DashboardView"
 
 
 export const metadata = { title: 'Dashboard' }
