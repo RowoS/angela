@@ -6,7 +6,7 @@ import { PriorityBadge, StatusBadge, SLABadge } from '@/components/Badges'
 import { getSlaState } from '@/lib/actions/sla-actions'
 import { useTicketFilters } from '@/hooks/use-ticket-filters'
 import type { SortKey } from '@/hooks/use-ticket-filters'
-import type { QueueTicket } from '@/lib/actions/ticket-actions'
+import type { QueueTicket } from '@/lib/types/tickets'
 import type { Database } from '@/lib/supabase/types'
 
 type Priority = Database['public']['Enums']['ticket_priority']
