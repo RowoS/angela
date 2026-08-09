@@ -5,5 +5,9 @@ import { requireRole } from "@/lib/auth/require-role"
 // Manager: read-only). Adjust the allowed list if that's wrong.
 export default async function QueueLayout({ children }: { children: React.ReactNode }) {
   await requireRole(["agent", "admin"])
-  return <>{children}</>
+  return (
+    <div className="flex flex-col w-full">
+      {children}
+    </div>
+  )
 }
