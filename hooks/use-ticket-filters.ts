@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import type { QueueTicket } from '@/lib/actions/ticket-actions'
+import type { QueueTicket } from '@/lib/types/tickets'
 import type { Database } from '@/lib/supabase/types'
 
 type Priority = Database['public']['Enums']['ticket_priority']
