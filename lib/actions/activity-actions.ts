@@ -6,6 +6,7 @@ import { ENTITY_TYPES_FOR_ROLE } from '@/lib/activity-format'
 
 export type GetActivityLogFilters = {
   entityType?: string
+  entityId?: string
   action?: string
   actorId?: string
   search?: string
