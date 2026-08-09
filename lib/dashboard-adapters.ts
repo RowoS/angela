@@ -55,7 +55,12 @@ export function toActivityItems(rows: RecentActivity[]) {
   return rows.map((r) => ({
     id: r.id,
     action_type: ACTION_TYPE_MAP[r.action] ?? 'ticket_status_changed',
-    description: describeActivity({ action: r.action, actorName: r.actorName, metadata: r.metadata }),
+    description: describeActivity({ 
+      action: r.action, 
+      actorName: r.actorName, 
+      metadata: r.metadata,
+      subject: r.subject ?? null // Added subject here to satisfy ActivityLike
+    }),
     timestamp: r.createdAt,
     actor: { full_name: r.actorName ?? 'System' },
   }))

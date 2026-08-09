@@ -1,0 +1,1 @@
+drop view if exists public.dashboard_recent_activity;

@@ -1,6 +1,8 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { getActivityLog } from '@/lib/actions/activity-actions'
+import type { ActivityLogRow } from '@/lib/types/activity'
 
 export type DashboardCounts = {
   openCount: number
@@ -135,35 +137,24 @@ export async function getTicketsOpenedOverTime(
   )
 }
 
-export type RecentActivity = {
-  id: string
-  actorId: string | null
-  actorName: string | null // null when actor_id is null (system-driven) or profile lookup misses
-  action: string
-  entityType: string
-  entityId: string
-  metadata: Record<string, unknown>
-  createdAt: string
+
+// Preserves the current dashboard behavior (admin-only activity card).
+// Pass adminOnly: false if you want agents to see their scoped activity
+// here too — getActivityLog already restricts an agent's results to
+// ticket/room_reservation entities, it just wasn't being called from
+// the dashboard before.
+export async function getRecentActivity(
+  limit = 10,
+  { adminOnly = true }: { adminOnly?: boolean } = {}
+): Promise<ActivityLogRow[]> {
+  if (adminOnly) {
+    const supabase = await createClient()
+    const { data: role } = await supabase.rpc('get_caller_role')
+    if (role !== 'admin') return []
+  }
+  return getActivityLog({ limit })
 }
 
-export async function getRecentActivity(): Promise<RecentActivity[]> {
-  const supabase = await createClient()
-  const { data, error } = await supabase
-    .from('dashboard_recent_activity')
-    .select('*')
-
-  if (error) throw new Error(error.message)
-  return (data ?? []).map((r) => ({
-    id: r.id,
-    actorId: r.actor_id,
-    actorName: r.actor_name,
-    action: r.action,
-    entityType: r.entity_type,
-    entityId: r.entity_id,
-    metadata: r.metadata,
-    createdAt: r.created_at,
-  }))
-}
 
 export type AgentWorkload = {
   agentId: string
