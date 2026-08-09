@@ -2,7 +2,6 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { getEventOwners } from '@/lib/actions/calendar-actions';
 import { CalendarShell } from './components/CalendarShell';
-import DashboardHeader from '@/components/DashboardHeader';
 
 export const metadata = {
   title: 'Calendar',
@@ -45,7 +44,6 @@ export default async function CalendarPage() {
   return (
     <>
       <div className='flex flex-col w-full'>
-        <DashboardHeader menuItem='Calendar' />
         <div className="mx-auto w-full max-w-6xl p-6 md:p-8">
           <div className="mb-6">
             <p className="mt-1 text-sm text-slate-500">
