@@ -54,3 +54,16 @@ export const FIELD_INPUT =
 export const SECONDARY_BTN = 'rounded-md px-3.5 py-2 text-sm font-semibold text-slate-500 hover:bg-slate-50';
 export const DANGER_BTN = 'rounded-md px-3.5 py-2 text-sm font-semibold text-red-600 hover:bg-red-50';
 export const DANGER_SOLID_BTN = 'rounded-lg bg-red-600 px-3.5 py-2 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-50';
+
+export const OUTLINE_BTN =
+  'rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-50';
+
+export const TABLE_HEADER_CELL = 'px-5 py-2.5 text-left text-[11px] font-bold uppercase tracking-wide text-slate-400';
+export const TABLE_ROW = 'border-t border-slate-100';
+export const TABLE_CELL = 'px-5 py-3 text-sm text-slate-900 align-top';
+
+export const STATUS_BADGE: Record<'available' | 'booked' | 'inactive', string> = {
+  available: 'bg-green-50 text-green-600',
+  booked: 'bg-red-50 text-red-600',
+  inactive: 'bg-slate-100 text-slate-400',
+};

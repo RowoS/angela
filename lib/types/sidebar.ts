@@ -74,7 +74,7 @@ export const ROLE_MENUS: Record<Role, MenuItem[]> = {
         {
             name: "Rooms",
             icon: DoorOpen,
-            href: "/rooms"
+            href: "/admin/rooms"
         },
         {
             name: "Reports",
