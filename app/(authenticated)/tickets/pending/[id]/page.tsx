@@ -1,5 +1,4 @@
 import { notFound, redirect } from 'next/navigation'
-import DashboardHeader from '@/components/DashboardHeader'
 import { getTicketDetail, getTicketAttachments } from '@/lib/actions/ticket-actions'
 import { PendingTicketClientView } from '@/app/(authenticated)/tickets/components/PendingTicketClientView'
 
@@ -14,7 +13,6 @@ export default async function PendingTicketPage({ params }: { params: Promise<{ 
 
   return (
     <div className="flex flex-col w-full">
-      <DashboardHeader menuItem={ticket.ticket_number} />
       
       {/* Hand off the rendering to the Client Component */}
       <PendingTicketClientView ticket={ticket} attachments={attachments} />
