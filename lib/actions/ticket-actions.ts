@@ -1,33 +1,11 @@
 'use server'
 
-import type { Database } from '@/lib/supabase/types'
+import type { QueueTicket, TicketDetailData } from '@/lib/types/tickets'
 
 import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from 'next/cache'
 import type { CommentRow } from '@/app/(authenticated)/tickets/components/TicketComment'
 import type { AttachmentRow } from '@/app/(authenticated)/tickets/components/TicketAttachment'
-
-type TicketPriority = Database['public']['Enums']['ticket_priority']
-type TicketStatus = Database['public']['Enums']['ticket_status']
-
-export type QueueTicket = {
-  id: string
-  ticket_number: string
-  title: string
-  description: string
-  status: TicketStatus
-  priority: TicketPriority
-  created_at: string
-  due_at: string | null
-  first_response_due_at: string | null
-  first_response_at: string | null
-  resolved_at: string | null
-  category: { id: string; name: string } | null
-  requester: { full_name: string; employee_no: string; department: string | null } | null
-  assigned_to: { id: string; full_name: string | null } | null
-  comment_count: number
-  attachment_count: number
-}
 
 async function getSupabaseAndUser() {
   const supabase = await createClient()
@@ -398,27 +376,6 @@ export async function getTicketQueue(opts?: { assignedToSelf?: boolean }): Promi
       attachment_count: t.attachments?.[0]?.count ?? 0,
     }
   })
-}
-
-
-// Detail view
-
-export type TicketDetailData = {
-  id: string
-  ticket_number: string
-  title: string
-  description: string
-  status: Database['public']['Enums']['ticket_status']
-  priority: TicketPriority
-  created_at: string
-  due_at: string | null
-  first_response_due_at: string | null
-  first_response_at: string | null
-  resolved_at: string | null
-  closed_at: string | null
-  category: { id: string; name: string } | null
-  requester: { id: string; full_name: string; employee_no: string; department: string | null } | null
-  assigned_to: { id: string; full_name: string | null } | null
 }
 
 export async function getTicketDetail(ticketId: string): Promise<TicketDetailData | null> {

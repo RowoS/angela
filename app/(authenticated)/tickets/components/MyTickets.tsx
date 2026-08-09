@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { MessageSquare } from 'lucide-react'
 import { PriorityBadge, StatusBadge, SLABadge } from '@/components/Badges'
 import { getSlaState, type SlaState } from '@/lib/actions/sla-actions'
-import type { QueueTicket } from '@/lib/actions/ticket-actions'
+import type { QueueTicket } from '@/lib/types/tickets'
 
 interface MyTicketsProps {
   tickets: QueueTicket[]
