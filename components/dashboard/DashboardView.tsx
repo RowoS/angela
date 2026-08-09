@@ -2,7 +2,6 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import DashboardHeader from '@/components/DashboardHeader'
 import { Clock, CheckCircle2, Users } from 'lucide-react'
 import StatCard from './StatCard'
 import { StatCard2 } from './StatCard2'
@@ -42,7 +41,7 @@ interface DashboardStatsProps {
   avgFirstResponse: AvgFirstResponse | null
 }
 
-export function DashboardView({
+export default function DashboardView({
   role,
   counts,
   recentTickets,
@@ -59,7 +58,6 @@ export function DashboardView({
 
   return (
     <div className="flex flex-col w-full">
-      <DashboardHeader menuItem="Dashboard" />
       <div className="flex p-7 flex-1">
         <div className="flex flex-col w-full gap-7">
 

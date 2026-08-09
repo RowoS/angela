@@ -1,13 +1,13 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
-import type { UserRole } from '@/lib/types/sidebar'
+import type { Role } from '@/lib/types/dashboard'
  
 // Routes anyone can hit without being signed in.
 const PUBLIC_ROUTES = ['/', '/login',  '/auth']
  
 // Routes that require a specific role, beyond just being signed in.
 // Checked in order; first prefix match wins.
-const ROLE_PROTECTED_ROUTES: { prefix: string; roles: UserRole[] }[] = [
+const ROLE_PROTECTED_ROUTES: { prefix: string; roles: Role[] }[] = [
   { prefix: '/dashboard', roles: ['admin'] },
   { prefix: '/dashboard', roles: ['agent'] },
   { prefix: '/reports', roles: ['manager'] },
@@ -77,7 +77,7 @@ export async function updateSession(request: NextRequest) {
         .eq('id', user.sub)
         .single()
  
-      if (!profile || !roleRule.roles.includes(profile.role as UserRole)) {
+      if (!profile || !roleRule.roles.includes(profile.role as Role)) {
         const url = request.nextUrl.clone()
         url.pathname = '/unauthorized'
         return NextResponse.redirect(url)

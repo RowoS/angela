@@ -1,40 +1,46 @@
 export type Priority = 
-    | "low" 
-    | "medium" 
-    | "high" 
-    | "critical";
+  | "low" 
+  | "medium" 
+  | "high" 
+  | "critical";
 
 export type Status =
-    | "pending_confirmation"
-    | "open"
-    | "in_progress"
-    | "on_hold"
-    | "resolved"
-    | "closed"
-    | "reopened"
-    | "cancelled";
+  | "pending_confirmation"
+  | "open"
+  | "in_progress"
+  | "on_hold"
+  | "resolved"
+  | "closed"
+  | "reopened"
+  | "cancelled";
 
 export type Role = 
-    | "admin" 
-    | "agent" 
-    | "manager";
+  | "admin" 
+  | "agent" 
+  | "manager";
+
+export const ROLE: readonly Role[] =  [
+  "admin",
+  "agent",
+  "manager"
+]
 
 export type ActivityActionType =
-    | "ticket_created"
-    | "ticket_closed"
-    | "ticket_status_changed"
-    | "ticket_assigned"
-    | "ticket_reassigned"
-    | "ticket_commented"
-    | "ticket_qr_confirmed"
-    | "ticket_qr_closed"
-    | "room_reserved"
-    | "room_cancelled"
-    | "event_created"
-    | "kb_article_created"
-    | "user_invited"
-    | "sla_breached"
-    | "sla_warning";
+  | "ticket_created"
+  | "ticket_closed"
+  | "ticket_status_changed"
+  | "ticket_assigned"
+  | "ticket_reassigned"
+  | "ticket_commented"
+  | "ticket_qr_confirmed"
+  | "ticket_qr_closed"
+  | "room_reserved"
+  | "room_cancelled"
+  | "event_created"
+  | "kb_article_created"
+  | "user_invited"
+  | "sla_breached"
+  | "sla_warning";
 
 export interface Profile {
   id: string;
