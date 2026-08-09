@@ -19,6 +19,11 @@ export async function getDashboardCounts(): Promise<DashboardCounts> {
     .maybeSingle()
 
   if (error) throw new Error(error.message)
+  // The view is a single unconditional aggregate, so a missing row
+  // means something's actually wrong (RLS misconfigured, view dropped)
+  // rather than "no data yet" — surface it instead of masking it as zeros.
+  if (!data) throw new Error('Dashboard counts unavailable')
+
   return {
     openCount: data.open_count,
     inProgressCount: data.in_progress_count,
@@ -53,12 +58,12 @@ export async function getRecentTickets(): Promise<RecentTicket[]> {
     status: r.status,
     categoryId: r.category_id,
     createdAt: r.created_at,
-    employeeName: r.employee_name
+    employeeName: r.requester_name
   }))
 }
 
 export type AvgFirstResponse = {
-  avgMinutes: number | null 
+  avgMinutes: number | null
   sampleSize: number
 }
 
@@ -75,7 +80,6 @@ export async function getAvgFirstResponse(): Promise<AvgFirstResponse> {
     sampleSize: data?.sample_size ?? 0,
   }
 }
-
 
 export type CategoryBreakdown = {
   categoryId: string
@@ -100,19 +104,11 @@ export async function getTicketsByCategory(): Promise<CategoryBreakdown[]> {
 export type OpenedPeriod = 'week' | 'month' | 'year'
 
 export type OpenedBucket = {
-  bucket: string // ISO date, truncated to the period's grain
+  bucket: string
   count: number
 }
 
-// Aggregates the daily view up to the requested grain in JS rather
-// than adding three more DB views. Trade-off: pulls one row per
-// (day, priority) for the whole range instead of doing the group-by
-// in Postgres. Fine at dashboard scale; revisit if the daily view
-// ever needs a WHERE created_at > x bound because the table's grown
-// large enough that "all time" stops being a reasonable default.
-export async function getTicketsOpenedOverTime(
-  period: OpenedPeriod
-): Promise<OpenedBucket[]> {
+export async function getTicketsOpenedOverTime(period: OpenedPeriod): Promise<OpenedBucket[]> {
   const supabase = await createClient()
   const { data, error } = await supabase
     .from('dashboard_tickets_opened_daily')
@@ -137,12 +133,10 @@ export async function getTicketsOpenedOverTime(
   )
 }
 
-
-// Preserves the current dashboard behavior (admin-only activity card).
-// Pass adminOnly: false if you want agents to see their scoped activity
-// here too — getActivityLog already restricts an agent's results to
-// ticket/room_reservation entities, it just wasn't being called from
-// the dashboard before.
+// Preserves current behavior: dashboard activity card is admin-only.
+// getActivityLog already scopes an agent's results to their allowed
+// entity types — pass adminOnly: false if you later want agents to see
+// their scoped activity on their own dashboard too.
 export async function getRecentActivity(
   limit = 10,
   { adminOnly = true }: { adminOnly?: boolean } = {}
@@ -154,7 +148,6 @@ export async function getRecentActivity(
   }
   return getActivityLog({ limit })
 }
-
 
 export type AgentWorkload = {
   agentId: string
