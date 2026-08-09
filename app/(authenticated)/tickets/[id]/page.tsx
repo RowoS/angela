@@ -1,5 +1,4 @@
 import { notFound, redirect } from 'next/navigation'
-import DashboardHeader from '@/components/DashboardHeader'
 import {
   getTicketDetail,
   getAssignableStaff,
@@ -36,7 +35,6 @@ export default async function TicketDetailPage({ params }: { params: Promise<{ i
   
     return (
         <div className="flex flex-col w-full">
-        <DashboardHeader menuItem={ticket.ticket_number} />
         <TicketDetailView
             ticket={ticket}
             staff={staff}
