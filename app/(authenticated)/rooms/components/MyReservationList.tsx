@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ReservationDetailModal } from './ReservationDetailModal';
 import { PANEL, TABLE_HEADER_CELL, TABLE_ROW, TABLE_CELL } from '@/lib/calendar-styles';
-import type { ConferenceRoom, RoomReservationWithRoom } from '@/lib/actions/room-actions';
+import type { ConferenceRoom, RoomReservationWithRoom } from '@/lib/types/rooms';
 
 type Props = {
   reservations: RoomReservationWithRoom[];
