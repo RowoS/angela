@@ -1,12 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import { cancelReservation, type ConferenceRoom, type RoomReservationWithRoom } from '@/lib/actions/room-actions';
+import { cancelReservation } from '@/lib/actions/room-actions';
+import type { ConferenceRoom, RoomReservationWithRoom } from '@/lib/types/rooms';
 import { ReservationEditForm } from './ReservationEditForm';
 import {
   MODAL_OVERLAY, MODAL_CARD, FIELD_LABEL,
   SECONDARY_BTN, DANGER_BTN, DANGER_SOLID_BTN, PRIMARY_BTN,
 } from '@/lib/calendar-styles';
+import { AmenityPill } from '@/components/rooms/AmenityPill';
 
 type Props = {
   reservation: RoomReservationWithRoom;
@@ -69,6 +71,11 @@ export function ReservationDetailModal({ reservation, rooms, onClose, onChanged 
               {reservation.conference_rooms.location ? ` · ${reservation.conference_rooms.location}` : ''}
               {' · '}seats {reservation.conference_rooms.capacity}
             </dd>
+            {reservation.conference_rooms.amenities?.length > 0 && (
+              <div className="mt-1.5 flex flex-wrap gap-1">
+                {reservation.conference_rooms.amenities.map((a) => <AmenityPill key={a} label={a} />)}
+              </div>
+            )}
           </div>
           <div>
             <dt className={FIELD_LABEL}>Organizer</dt>
