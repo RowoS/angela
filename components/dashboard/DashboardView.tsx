@@ -1,8 +1,6 @@
-// app/(authenticated)/admin/components/DashboardStats.tsx
 'use client'
 
 import { useRouter } from 'next/navigation'
-import DashboardHeader from '@/components/DashboardHeader'
 import { Clock, CheckCircle2, Users } from 'lucide-react'
 import StatCard from './StatCard'
 import { StatCard2 } from './StatCard2'
@@ -12,11 +10,11 @@ import { RecentTicketCard } from './RecentTicket'
 import { ActivityLogCard } from './ActivityLog'
 import { AgentWorkloadCard } from './AgentWorkload'
 import { ErrorState } from './ErrorState'
+import type { ActivityLogRow, StaffRole } from '@/lib/types/activity'
 import {
   toStatCards,
   toCategorySeries,
   toRecentTicketItems,
-  toActivityItems,
   toWorkloadItems,
   computeResolutionRate,
   formatMinutes
@@ -26,23 +24,22 @@ import type {
   RecentTicket,
   CategoryBreakdown,
   OpenedBucket,
-  RecentActivity,
   AgentWorkload,
   AvgFirstResponse
 } from '@/lib/actions/dashboard-actions'
 
 interface DashboardStatsProps {
-  role: 'admin' | 'agent' | 'manager'
+  role: StaffRole
   counts: DashboardCounts | null
   recentTickets: RecentTicket[] | null
   byCategory: CategoryBreakdown[] | null
   initialOpened: OpenedBucket[] | null
-  recentActivity: RecentActivity[] | null
+  recentActivity: ActivityLogRow[] | null
   agentWorkload: AgentWorkload[] | null
   avgFirstResponse: AvgFirstResponse | null
 }
 
-export function DashboardView({
+export default function DashboardView({
   role,
   counts,
   recentTickets,
@@ -55,11 +52,10 @@ export function DashboardView({
   const isAdmin = role === 'admin'
   const router = useRouter()
   const resolutionRate = isAdmin && agentWorkload?.length ? computeResolutionRate(agentWorkload) : null
-  const avgResponseValue = avgFirstResponse && avgFirstResponse.sampleSize > 0 ? formatMinutes(avgFirstResponse.avgMinutes): '-'
+  const avgResponseValue = avgFirstResponse && avgFirstResponse.sampleSize > 0 ? formatMinutes(avgFirstResponse.avgMinutes) : '-'
 
   return (
     <div className="flex flex-col w-full">
-      <DashboardHeader menuItem="Dashboard" />
       <div className="flex p-7 flex-1">
         <div className="flex flex-col w-full gap-7">
 
@@ -96,7 +92,7 @@ export function DashboardView({
               <div className="w-full lg:w-3/7 flex flex-col sm:flex-row gap-5">
                 <div className="flex-1 min-w-0">
                   {recentActivity ? (
-                    <ActivityLogCard items={toActivityItems(recentActivity)} onViewAll={() => router.push('/admin/activity')} />
+                    <ActivityLogCard items={recentActivity} onViewAll={() => router.push('/activity')} />
                   ) : (
                     <ErrorState label="activity log" />
                   )}
