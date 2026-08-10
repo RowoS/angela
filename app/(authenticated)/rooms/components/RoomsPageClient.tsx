@@ -7,7 +7,7 @@ import { RoomReservationModal } from './RoomReservationModal';
 import { MyReservationsTable } from './MyReservationList';
 import { PRIMARY_BTN } from '@/lib/calendar-styles';
 import { useRouter } from 'next/navigation';
-import type { ConferenceRoom, RoomReservationWithRoom } from '@/lib/actions/room-actions';
+import type { ConferenceRoom, RoomReservationWithRoom } from '@/lib/types/rooms';
 
 type Props = {
   rooms: ConferenceRoom[];
@@ -46,7 +46,11 @@ export function RoomsPageClient({
 
   return (
     <>
-      <div className="flex justify-end">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="text-lg font-bold text-slate-900">Conference Rooms</h1>
+          <p className="mt-1 text-sm text-slate-500">View room availability and reserve a space for your meeting.</p>
+        </div>
         <button onClick={() => openModal()} className={PRIMARY_BTN}>
           <Plus size={13} /> Reserve a Room
         </button>

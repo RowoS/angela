@@ -5,13 +5,11 @@ import { useEffect, useState, useTransition, useCallback } from 'react';
 import {
   createReservation,
   listAttachableEvents,
-  listRoomReservations,
-  type AttachableEvent,
-  type ConferenceRoom,
-  type RoomReservationWithRoom,
+  listRoomReservations
 } from '@/lib/actions/room-actions';
+import type { ConferenceRoom, RoomReservationWithRoom, AttachableEvent } from '@/lib/types/rooms';
 import { FIELD_LABEL, FIELD_INPUT, PRIMARY_BTN, SECONDARY_BTN } from '@/lib/calendar-styles';
-
+import { AmenityPill } from '@/components/rooms/AmenityPill';
 type Props = {
   rooms: ConferenceRoom[];
   initialRoomId?: string;
@@ -171,6 +169,15 @@ export function RoomReservationForm({ rooms, initialRoomId, onClose, onReserved 
             </option>
           ))}
         </select>
+        
+
+        {roomId && (
+          <div className="mt-1.5 flex flex-wrap gap-1">
+            {rooms.find((r) => r.id === roomId)?.amenities.map((a) => (
+              <AmenityPill key={a} label={a} />
+            ))}
+          </div>
+        )}
       </div>
 
       <div>

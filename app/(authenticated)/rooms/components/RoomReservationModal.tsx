@@ -2,7 +2,7 @@
 
 import { MODAL_OVERLAY, MODAL_CARD } from '@/lib/calendar-styles';
 import { RoomReservationForm } from './RoomReservationForm';
-import type { ConferenceRoom } from '@/lib/actions/room-actions';
+import type { ConferenceRoom } from '@/lib/types/rooms';
 
 type Props = {
   rooms: ConferenceRoom[];

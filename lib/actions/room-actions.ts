@@ -2,42 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
-
-export type ConferenceRoom = {
-  id: string;
-  name: string;
-  location: string | null;
-  capacity: number;
-  is_active: boolean;
-};
-
-export type RoomReservation = {
-  id: string;
-  room_id: string;
-  organizer_id: string;
-  title: string;
-  starts_at: string;
-  ends_at: string;
-  attendee_note: string | null;
-  cancelled_at: string | null;
-  cancelled_by: string | null;
-  created_at: string;
-  updated_at: string;
-};
-
-export type RoomReservationWithRoom = RoomReservation & {
-  conference_rooms: Pick<ConferenceRoom, 'id' | 'name' | 'location' | 'capacity'>;
-  room_reservation_attendees: { employee_id: string }[];
-  organizer: { id: string; full_name: string | null } | null;
-};
-
-export type AttachableEvent = {
-  id: string;
-  title: string;
-  event_type: string;
-  starts_at: string;
-  ends_at: string;
-};
+import type { ConferenceRoom, RoomReservation, RoomReservationWithRoom, AttachableEvent  } from '../types/rooms';
 
 type ActionResult<T> = { data: T; error: null } | { data: null; error: string } | { data: T; error: string };
 
@@ -59,7 +24,7 @@ export async function listConferenceRooms(): Promise<ActionResult<ConferenceRoom
 
   const { data, error } = await supabase
     .from('conference_rooms')
-    .select('id, name, location, capacity, is_active')
+    .select('id, name, location, capacity, is_active, amenities')
     .eq('is_active', true)
     .order('name');
 

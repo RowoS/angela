@@ -16,13 +16,6 @@ export default async function RoomsPage() {
 
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 p-6 md:p-8">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-lg font-bold text-slate-900">Conference Rooms</h1>
-          <p className="mt-1 text-sm text-slate-500">View room availability and reserve a space for your meeting.</p>
-        </div>
-      </div>
-
       {roomsError && <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-600">Failed to load rooms: {roomsError}</p>}
 
       <RoomsPageClient

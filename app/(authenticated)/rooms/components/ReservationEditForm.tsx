@@ -2,7 +2,8 @@
 
 import { format } from 'date-fns';
 import { useEffect, useState } from 'react';
-import { updateReservation, listRoomReservations, type ConferenceRoom, type RoomReservationWithRoom } from '@/lib/actions/room-actions';
+import { updateReservation, listRoomReservations } from '@/lib/actions/room-actions';
+import type { ConferenceRoom, RoomReservationWithRoom } from '@/lib/types/rooms';
 import { FIELD_LABEL, FIELD_INPUT, PRIMARY_BTN, SECONDARY_BTN } from '@/lib/calendar-styles';
 
 type Props = {

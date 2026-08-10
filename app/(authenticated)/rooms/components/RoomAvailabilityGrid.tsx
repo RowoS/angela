@@ -2,7 +2,8 @@
 
 import { Users, MapPin } from 'lucide-react';
 import { STATUS_BADGE, PANEL } from '@/lib/calendar-styles';
-import type { ConferenceRoom, RoomReservationWithRoom } from '@/lib/actions/room-actions';
+import { AmenityPill } from '@/components/rooms/AmenityPill';
+import type { ConferenceRoom, RoomReservationWithRoom } from '@/lib/types/rooms';
 
 type Props = {
   rooms: ConferenceRoom[];
@@ -47,6 +48,12 @@ export function RoomAvailabilityGrid({ rooms, todaysReservations, nowIso, onRese
             <div className="flex items-center gap-1.5 text-sm text-slate-500">
               <Users size={13} className="text-slate-400" /> Capacity: <strong className="text-slate-900">{room.capacity}</strong>
             </div>
+
+            {room.amenities.length > 0 && (
+              <div className="flex flex-wrap gap-1">
+                {room.amenities.map((a) => <AmenityPill key={a} label={a} />)}
+              </div>
+            )}
 
             {roomReservations.length > 0 && (
               <div className="flex flex-col gap-1.5">
