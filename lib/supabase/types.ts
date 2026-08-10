@@ -331,6 +331,7 @@ export type Database = {
       }
       room_reservations: {
         Row: {
+          attendee_note: string | null
           cancelled_at: string | null
           cancelled_by: string | null
           created_at: string
@@ -343,6 +344,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          attendee_note?: string | null
           cancelled_at?: string | null
           cancelled_by?: string | null
           created_at?: string
@@ -355,6 +357,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          attendee_note?: string | null
           cancelled_at?: string | null
           cancelled_by?: string | null
           created_at?: string
@@ -861,32 +864,18 @@ export type Database = {
       }
     }
     Views: {
-      dashboard_agent_workload: {
-        Row: {
-          agent_id: string | null
-          agent_name: string | null
-          closed_count: number | null
-          in_progress_count: number | null
-        }
-        Relationships: []
-      }
-      dashboard_avg_first_response: {
-        Row: {
-          avg_first_response_minutes: number | null
-          sample_size: number | null
-        }
-        Relationships: []
-      }
-      dashboard_recent_activity: {
+      activity_log_detailed: {
         Row: {
           action: string | null
           actor_id: string | null
           actor_name: string | null
+          actor_role: Database["public"]["Enums"]["roles"] | null
           created_at: string | null
           entity_id: string | null
           entity_type: string | null
           id: string | null
           metadata: Json | null
+          subject: string | null
         }
         Relationships: [
           {
@@ -904,6 +893,22 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      dashboard_agent_workload: {
+        Row: {
+          agent_id: string | null
+          agent_name: string | null
+          closed_count: number | null
+          in_progress_count: number | null
+        }
+        Relationships: []
+      }
+      dashboard_avg_first_response: {
+        Row: {
+          avg_first_response_minutes: number | null
+          sample_size: number | null
+        }
+        Relationships: []
       }
       dashboard_recent_tickets: {
         Row: {
@@ -958,6 +963,18 @@ export type Database = {
         }
         Relationships: []
       }
+      ticket_audit_trail: {
+        Row: {
+          actor_id: string | null
+          changed_by_employee_id: string | null
+          created_at: string | null
+          event_type: string | null
+          id: string | null
+          metadata: Json | null
+          ticket_id: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       assign_ticket: {
@@ -987,6 +1004,7 @@ export type Database = {
       }
       create_room_reservation: {
         Args: {
+          p_attendee_note?: string
           p_ends_at: string
           p_event_id?: string
           p_room_id: string
@@ -994,6 +1012,7 @@ export type Database = {
           p_title: string
         }
         Returns: {
+          attendee_note: string | null
           cancelled_at: string | null
           cancelled_by: string | null
           created_at: string
