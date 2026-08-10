@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
-import type { ConferenceRoom } from '@/lib/actions/room-actions';
+import type { ConferenceRoom } from '@/lib/types/rooms';
 
 type ActionResult<T> = { data: T; error: null } | { data: null; error: string };
 
@@ -12,12 +12,13 @@ export async function createConferenceRoom(input: {
   name: string;
   location?: string;
   capacity: number;
+  amenities?: string[];
 }): Promise<ActionResult<ConferenceRoom>> {
   const supabase = await createClient();
 
   const { data, error } = await supabase
     .from('conference_rooms')
-    .insert({ name: input.name, location: input.location ?? null, capacity: input.capacity })
+    .insert({ name: input.name, location: input.location ?? null, capacity: input.capacity, amenities: input.amenities ?? [] })
     .select()
     .single();
 
@@ -29,7 +30,7 @@ export async function createConferenceRoom(input: {
 
 export async function updateConferenceRoom(
   roomId: string,
-  input: Partial<{ name: string; location: string | null; capacity: number; is_active: boolean }>,
+  input: Partial<Pick<ConferenceRoom, 'name' | 'location' | 'capacity' | 'is_active' | 'amenities'>>,
 ): Promise<ActionResult<ConferenceRoom>> {
   const supabase = await createClient();
 
