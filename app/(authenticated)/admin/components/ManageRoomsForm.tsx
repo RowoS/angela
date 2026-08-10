@@ -1,46 +1,20 @@
 'use client';
 
-import { useState, useTransition } from 'react';
-import { createConferenceRoom, deactivateConferenceRoom, updateConferenceRoom } from '@/lib/actions/room-admin-actions';
-import type { ConferenceRoom } from '@/lib/actions/room-actions';
-import { PANEL, FIELD_INPUT, PRIMARY_BTN, OUTLINE_BTN } from '@/lib/calendar-styles';
+import { useTransition } from 'react';
+import { useRouter } from 'next/navigation';
+import { Power, PowerOff, MapPin, Users } from 'lucide-react';
+import { deactivateConferenceRoom, updateConferenceRoom } from '@/lib/actions/room-admin-actions';
+import { AmenityPill } from '@/components/rooms/AmenityPill';
+import { PANEL, TABLE_HEADER_CELL, TABLE_ROW, TABLE_CELL } from '@/lib/calendar-styles';
+import type { ConferenceRoom } from '@/lib/types/rooms';
 
 type Props = {
   rooms: ConferenceRoom[];
 };
 
 export function ManageRoomsForm({ rooms }: Props) {
-  const [name, setName] = useState('');
-  const [location, setLocation] = useState('');
-  const [capacity, setCapacity] = useState('');
-  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
   const [isPending, startTransition] = useTransition();
-
-  function handleAdd(e: React.FormEvent) {
-    e.preventDefault();
-    setError(null);
-
-    const parsedCapacity = Number(capacity);
-    if (!name || !parsedCapacity || parsedCapacity <= 0) {
-      setError('Give the room a name and a capacity greater than zero.');
-      return;
-    }
-
-    startTransition(async () => {
-      const { error: createError } = await createConferenceRoom({
-        name,
-        location: location || undefined,
-        capacity: parsedCapacity,
-      });
-      if (createError) {
-        setError(createError);
-        return;
-      }
-      setName('');
-      setLocation('');
-      setCapacity('');
-    });
-  }
 
   function handleToggleActive(room: ConferenceRoom) {
     startTransition(async () => {
@@ -49,59 +23,83 @@ export function ManageRoomsForm({ rooms }: Props) {
       } else {
         await updateConferenceRoom(room.id, { is_active: true });
       }
+      router.refresh();
     });
   }
 
-  return (
-    <div className="flex flex-col gap-6">
-      <form onSubmit={handleAdd} className={`${PANEL} flex flex-col gap-3 p-4`}>
-        <p className="text-sm font-bold text-slate-900">Add a room</p>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-          <input
-            placeholder="Name (e.g. Redwood)"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className={FIELD_INPUT}
-          />
-          <input
-            placeholder="Location (optional)"
-            value={location}
-            onChange={(e) => setLocation(e.target.value)}
-            className={FIELD_INPUT}
-          />
-          <input
-            placeholder="Capacity"
-            type="number"
-            min={1}
-            value={capacity}
-            onChange={(e) => setCapacity(e.target.value)}
-            className={FIELD_INPUT}
-          />
-        </div>
-        {error && <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>}
-        <button type="submit" disabled={isPending} className={`${PRIMARY_BTN} self-start disabled:opacity-50`}>
-          {isPending ? 'Saving…' : 'Add room'}
-        </button>
-      </form>
 
-      <div className={`${PANEL} flex flex-col divide-y divide-slate-100`}>
-        {rooms.length === 0 && <p className="p-4 text-sm text-slate-400">No rooms yet.</p>}
-        {rooms.map((room) => (
-          <div key={room.id} className="flex items-center justify-between p-3">
-            <div className="min-w-0">
-              <p className="truncate text-sm font-semibold text-slate-900">
-                {room.name} {!room.is_active && <span className="font-normal text-slate-400">(inactive)</span>}
-              </p>
-              <p className="mt-0.5 text-xs text-slate-400">
-                {room.location ? `${room.location} · ` : ''}Seats {room.capacity}
-              </p>
-            </div>
-            <button disabled={isPending} onClick={() => handleToggleActive(room)} className={`${OUTLINE_BTN} shrink-0`}>
-              {room.is_active ? 'Deactivate' : 'Reactivate'}
-            </button>
-          </div>
-        ))}
+  return (
+    <div className="flex flex-col gap-4">
+     <div className={`${PANEL} overflow-hidden`}>
+        {rooms.length === 0 ? (
+          <p className="p-4 text-sm text-slate-400">No rooms yet.</p>
+        ) : (
+          <table className="w-full border-collapse">
+            <thead>
+              <tr className="bg-slate-50">
+                {['Room', 'Location', 'Capacity', 'Amenities', 'Status', 'Actions'].map((h) => (
+                  <th key={h} className={TABLE_HEADER_CELL}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {rooms.map((room) => (
+                <tr key={room.id} className={`${TABLE_ROW} ${!room.is_active ? 'opacity-60' : ''}`}>
+                  <td className={TABLE_CELL}>
+                    <div className="font-semibold text-slate-900">{room.name}</div>
+                  </td>
+                  <td className={TABLE_CELL}>
+                    {room.location ? (
+                      <span className="flex items-center gap-1 text-slate-500">
+                        <MapPin size={12} className="text-slate-400" /> {room.location}
+                      </span>
+                    ) : (
+                      <span className="text-slate-300">—</span>
+                    )}
+                  </td>
+                  <td className={TABLE_CELL}>
+                    <span className="flex items-center gap-1 font-medium text-slate-900">
+                      <Users size={13} className="text-slate-400" /> {room.capacity}
+                    </span>
+                  </td>
+                  <td className={TABLE_CELL}>
+                    {room.amenities.length > 0 ? (
+                      <div className="flex flex-wrap gap-1">
+                        {room.amenities.map((a) => <AmenityPill key={a} label={a} />)}
+                      </div>
+                    ) : (
+                      <span className="text-slate-300">—</span>
+                    )}
+                  </td>
+                  <td className={TABLE_CELL}>
+                    <span
+                      className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${
+                        room.is_active ? 'bg-green-50 text-green-600' : 'bg-slate-100 text-slate-400'
+                      }`}
+                    >
+                      {room.is_active ? 'Active' : 'Inactive'}
+                    </span>
+                  </td>
+                  <td className={TABLE_CELL}>
+                    <button
+                      disabled={isPending}
+                      onClick={() => handleToggleActive(room)}
+                      className={`flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-bold transition-colors disabled:opacity-50 ${
+                        room.is_active
+                          ? 'border-red-200 bg-red-50 text-red-600 hover:bg-red-100'
+                          : 'border-green-200 bg-green-50 text-green-600 hover:bg-green-100'
+                      }`}
+                    >
+                      {room.is_active ? <><PowerOff size={12} /> Deactivate</> : <><Power size={12} /> Activate</>}
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
+
     </div>
   );
 }
