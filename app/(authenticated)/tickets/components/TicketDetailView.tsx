@@ -11,7 +11,7 @@ import { describeActivity } from '@/lib/activity-format'
 import { getSlaState } from '@/lib/actions/sla-actions'
 import { useTicketControls } from '@/hooks/use-ticket-controls'
 import type { TicketDetailData } from '@/lib/types/tickets'
-import type { ActivityLogRow } from '@/lib/actions/activity-actions'
+import type { ActivityLogRow } from '@/lib/types/activity'
 import type { ValidStatus } from '@/hooks/use-ticket-controls'
 interface StaffMember {
   id: string

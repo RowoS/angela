@@ -1,20 +1,15 @@
-import { createClient } from '@/lib/supabase/server'
+'use server'
 
-export type ActivityLogRow = {
-  id: string
-  actorId: string | null // null on system/trigger-driven entries with no auth.uid()
-  actorName: string | null // resolved from profiles; null when actorId is null or the lookup misses
-  action: string
-  entityType: string
-  entityId: string
-  metadata: Record<string, unknown>
-  createdAt: string
-}
+import { createClient } from '@/lib/supabase/server'
+import type { ActivityLogRow, StaffRole } from '@/lib/types/activity'
+import { ENTITY_TYPES_FOR_ROLE } from '@/lib/activity-format'
 
 export type GetActivityLogFilters = {
   entityType?: string
   entityId?: string
   action?: string
+  actorId?: string
+  search?: string
   limit?: number
   before?: string // cursor: created_at of the last row already fetched
 }
@@ -22,56 +17,73 @@ export type GetActivityLogFilters = {
 const DEFAULT_LIMIT = 25
 const MAX_LIMIT = 200
 
-export async function getActivityLog(
-  filters: GetActivityLogFilters = {}
-): Promise<ActivityLogRow[]> {
+type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>
+
+async function getCallerRole(supabase: SupabaseServerClient): Promise<StaffRole> {
+  const { data, error } = await supabase.rpc('get_caller_role')
+  if (error || !data) throw new Error('Could not resolve caller role')
+  return data as StaffRole
+}
+
+export async function getActivityLog(filters: GetActivityLogFilters = {}): Promise<ActivityLogRow[]> {
   const supabase = await createClient()
+  const role = await getCallerRole(supabase)
+  const allowedEntities = ENTITY_TYPES_FOR_ROLE[role]
+
+  // Managers (or any future role with no allowlist) get nothing — the page
+  // itself also redirects them, this is defense in depth, not the primary gate.
+  if (allowedEntities.length === 0) return []
+
   const limit = Math.min(filters.limit ?? DEFAULT_LIMIT, MAX_LIMIT)
 
   let query = supabase
-    .from('activity_log')
-    .select('id, actor_id, action, entity_type, entity_id, metadata, created_at')
+    .from('activity_log_detailed')
+    .select('id, actor_id, actor_name, actor_role, action, entity_type, entity_id, subject, metadata, created_at')
     .order('created_at', { ascending: false })
     .limit(limit)
 
-  if (filters.entityType) query = query.eq('entity_type', filters.entityType)
-  if (filters.entityId) query = query.eq('entity_id', filters.entityId)
+  // Never trust the client's entityType — an agent hand-crafting
+  // entityType=sla in a request should still get nothing back.
+  const entityTypeFilter =
+    filters.entityType && allowedEntities.includes(filters.entityType) ? [filters.entityType] : allowedEntities
+  query = query.in('entity_type', entityTypeFilter)
+
   if (filters.action) query = query.eq('action', filters.action)
+  if (filters.actorId) query = query.eq('actor_id', filters.actorId)
   if (filters.before) query = query.lt('created_at', filters.before)
+
+  if (filters.search) {
+    const escaped = filters.search.replace(/[%_]/g, (c) => `\\${c}`)
+    query = query.or(`actor_name.ilike.%${escaped}%,subject.ilike.%${escaped}%,action.ilike.%${escaped}%`)
+  }
 
   const { data, error } = await query
   if (error) throw new Error(error.message)
-  const rows = data ?? []
 
-  // Batched IN-lookup instead of an embedded `profiles(full_name)` select.
-  // The embedded syntax depends on Supabase auto-discovering the FK by
-  // name — one extra round trip here is cheaper than a silent break if
-  // that relationship ever gets renamed.
-  const actorIds = Array.from(
-    new Set(rows.map((r) => r.actor_id).filter((id): id is string => id !== null))
-  )
-
-  const actorNames = new Map<string, string>()
-  if (actorIds.length > 0) {
-    const { data: profiles, error: profilesError } = await supabase
-      .from('profiles')
-      .select('id, full_name')
-      .in('id', actorIds)
-
-    if (profilesError) throw new Error(profilesError.message)
-    for (const p of profiles ?? []) {
-      if (p.full_name) actorNames.set(p.id, p.full_name)
-    }
-  }
-
-  return rows.map((row) => ({
+  return (data ?? []).map((row) => ({
     id: row.id,
     actorId: row.actor_id,
-    actorName: row.actor_id ? actorNames.get(row.actor_id) ?? null : null,
+    actorName: row.actor_name,
+    actorRole: row.actor_role,
     action: row.action,
     entityType: row.entity_type,
     entityId: row.entity_id,
+    subject: row.subject,
     metadata: row.metadata,
     createdAt: row.created_at,
   }))
+}
+
+export async function getActivityActors(): Promise<{ id: string; fullName: string }[]> {
+  const supabase = await createClient()
+  const { data, error } = await supabase.from('profiles').select('id, full_name').order('full_name')
+  if (error) throw new Error(error.message)
+  return (data ?? [])
+    .filter((p): p is { id: string; full_name: string } => !!p.full_name)
+    .map((p) => ({ id: p.id, fullName: p.full_name }))
+}
+
+export async function getCallerRoleAction(): Promise<StaffRole> {
+  const supabase = await createClient()
+  return getCallerRole(supabase)
 }

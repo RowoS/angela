@@ -1,15 +1,13 @@
 // lib/dashboard-adapters.ts
 import { Zap, TrendingUp, TriangleAlert, Clock4 } from 'lucide-react'
-import { describeActivity } from '@/lib/activity-format'
 import type {
   DashboardCounts,
   RecentTicket,
   CategoryBreakdown,
-  RecentActivity,
   AgentWorkload,
 } from '@/lib/actions/dashboard-actions'
 import type { StatCardProps } from '@/components/dashboard/StatCard'
-import type { ActivityActionType, Priority, Status } from '@/lib/types/dashboard'
+import type { Priority, Status } from '@/lib/types/dashboard'
 
 export function toStatCards(counts: DashboardCounts): StatCardProps[] {
   return [
@@ -42,24 +40,6 @@ export function formatMinutes(minutes: number | null): string {
   return `${h}h ${m}m`
 }
 
-const ACTION_TYPE_MAP: Record<string, ActivityActionType> = {
-  'ticket.draft_created': 'ticket_created',
-  'ticket.verified': 'ticket_qr_confirmed',
-  'ticket.status_changed': 'ticket_status_changed',
-  'ticket.assigned': 'ticket_assigned',
-  'ticket.deleted': 'ticket_closed',
-  'room_reservation.created': 'room_reserved',
-}
-
-export function toActivityItems(rows: RecentActivity[]) {
-  return rows.map((r) => ({
-    id: r.id,
-    action_type: ACTION_TYPE_MAP[r.action] ?? 'ticket_status_changed',
-    description: describeActivity({ action: r.action, actorName: r.actorName, metadata: r.metadata }),
-    timestamp: r.createdAt,
-    actor: { full_name: r.actorName ?? 'System' },
-  }))
-}
 
 export function toWorkloadItems(rows: AgentWorkload[]) {
   return rows.map((r) => ({
