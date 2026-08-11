@@ -127,6 +127,7 @@ export type Database = {
       }
       conference_rooms: {
         Row: {
+          amenities: string[]
           capacity: number
           created_at: string
           id: string
@@ -136,6 +137,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          amenities?: string[]
           capacity: number
           created_at?: string
           id?: string
@@ -145,6 +147,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          amenities?: string[]
           capacity?: number
           created_at?: string
           id?: string
