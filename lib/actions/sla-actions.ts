@@ -1,48 +1,54 @@
-export type SlaState = 'none' | 'ok' | 'warning' | 'breached'
+'use server'
 
-interface SlaInput {
-  due_at: string | null
-  first_response_due_at: string | null
-  first_response_at: string | null
-  resolved_at: string | null
-  status: string
+import { revalidatePath } from 'next/cache'
+import { createClient } from '@/lib/supabase/server'
+import type { SlaPriority, SlaRow } from '@/lib/utils/sla-utils' 
+
+async function getSupabaseAndUser() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not signed in')
+  return { supabase, user }
 }
 
-// Matches dashboard_ticket_counts' window exactly (see
-// 20260730080138_remote_schema.sql) so the queue and dashboard
-// never disagree on what counts as "approaching."
-const WARNING_WINDOW_MS = 60 * 60 * 1000
+export async function getSlas(): Promise<SlaRow[]> {
+  const { supabase } = await getSupabaseAndUser()
+  const { data, error } = await supabase
+    .from('slas')
+    .select('id, name, priority, first_response_minutes, resolution_minutes')
+    .order('priority')
 
-export function getSlaState({
-  due_at,
-  first_response_due_at,
-  first_response_at,
-  resolved_at,
-  status,
-}: SlaInput): SlaState {
-  if (status === 'resolved' || status === 'closed' || status === 'cancelled') {
-    return 'none'
+  if (error) throw new Error(error.message)
+  return data ?? []
+}
+
+export async function upsertSla(input: {
+  priority: SlaPriority
+  name: string
+  first_response_minutes: number
+  resolution_minutes: number
+}) {
+  const { supabase } = await getSupabaseAndUser()
+
+  if (input.first_response_minutes <= 0 || input.resolution_minutes <= 0) {
+    throw new Error('SLA minutes must be positive.')
+  }
+  if (input.first_response_minutes > input.resolution_minutes) {
+    throw new Error('First-response time cannot exceed resolution time.')
   }
 
-  const now = Date.now()
+  const { error } = await supabase
+    .from('slas')
+    .upsert(
+      {
+        priority: input.priority,
+        name: input.name,
+        first_response_minutes: input.first_response_minutes,
+        resolution_minutes: input.resolution_minutes,
+      },
+      { onConflict: 'priority' }
+    )
 
-  const firstResponseBreached =
-    !first_response_at &&
-    !!first_response_due_at &&
-    new Date(first_response_due_at).getTime() <= now
-
-  const resolutionBreached =
-    !resolved_at && !!due_at && new Date(due_at).getTime() <= now
-
-  if (firstResponseBreached || resolutionBreached) return 'breached'
-
-  const firstResponseWarning =
-    !first_response_at &&
-    !!first_response_due_at &&
-    new Date(first_response_due_at).getTime() - now <= WARNING_WINDOW_MS
-
-  const resolutionWarning =
-    !resolved_at && !!due_at && new Date(due_at).getTime() - now <= WARNING_WINDOW_MS
-
-  return firstResponseWarning || resolutionWarning ? 'warning' : 'ok'
+  if (error) throw new Error(error.message)
+  revalidatePath('/admin/slas')
 }
