@@ -82,10 +82,11 @@ export function filterTickets(tickets: QueueTicket[], filters: QueueFilters): Qu
             const q = filters.search.toLowerCase()
             const matchesTitle = ticket.title.toLowerCase().includes(q)
             const matchesNumber = ticket.ticket_number.toLowerCase().includes(q)
-            if (!matchesTitle && !matchesNumber) return false
+            const matchesRequester = (ticket.requester?.full_name ?? '').toLowerCase().includes(q)
+            if (!matchesTitle && !matchesNumber && !matchesRequester) return false
         }
         return true
     })
 }
 
-export type { SlaState } from "@/lib/actions/sla-actions"
+export type { SlaState } from "@/lib/utils/sla-utils"
