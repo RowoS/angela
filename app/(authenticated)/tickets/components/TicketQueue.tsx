@@ -1,9 +1,10 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
-import { Filter, Download, MessageSquare, Paperclip, ArrowUpDown } from 'lucide-react'
+import { Filter, Download, Loader2, MessageSquare, Paperclip, ArrowUpDown } from 'lucide-react'
 import { PriorityBadge, StatusBadge, SLABadge } from '@/components/Badges'
-import { getSlaState } from '@/lib/actions/sla-actions'
+import { getSlaState } from '@/lib/utils/sla-utils'
 import { useTicketFilters } from '@/hooks/use-ticket-filters'
 import type { SortKey } from '@/hooks/use-ticket-filters'
 import type { QueueTicket } from '@/lib/types/tickets'
@@ -20,10 +21,9 @@ interface TicketQueueProps {
 }
 
 export function TicketQueue({ tickets }: TicketQueueProps) {
-  // 1. Consume the custom hook
   const { state, actions, data } = useTicketFilters(tickets)
+  const [isExporting, setIsExporting] = useState(false)
 
-  // 2. Original chip helper remains in place
   const chip = (active: boolean) =>
     `px-3 py-1 text-xs font-semibold rounded-md border transition-colors ${
       active
@@ -31,9 +31,6 @@ export function TicketQueue({ tickets }: TicketQueueProps) {
         : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
     }`
 
-  /*
-      TO-DO: Fix UI for responsiveness and separate into components.
-  */
   return (
     <div className="flex flex-col gap-5">
       <div className="flex flex-wrap items-center gap-2.5">
@@ -75,8 +72,12 @@ export function TicketQueue({ tickets }: TicketQueueProps) {
               </option>
             ))}
           </select>
-          <button className="flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-50">
-            <Download size={13} /> Export CSV
+          <button
+            disabled={isExporting}
+            className="flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {isExporting ? <Loader2 size={13} className="animate-spin" /> : <Download size={13} />}
+            {isExporting ? 'Exporting…' : 'Export CSV'}
           </button>
         </div>
       </div>
