@@ -2,7 +2,7 @@
 
 import { useTransition } from "react"
 import { updateTicketStatus } from "@/lib/actions/ticket-actions" // ADJUST if this differs from the real export path
-import type { ManualStatus } from "@/lib/actions/ticket-actions"
+import type { ManualStatus } from "@/hooks/use-ticket-controls"
 import type { TicketStatus } from "@/lib/types/tickets"
 import { CloseViaQRDialog } from "./CloseViaQRDialog" // confirm this matches the real on-disk filename/casing exactly
 

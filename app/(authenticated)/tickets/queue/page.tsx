@@ -2,7 +2,7 @@ import { Suspense } from "react"
 import { getTicketQueue } from "@/lib/actions/ticket-actions" // ADJUST if your actual actions file lives elsewhere
 import { filterTickets, QueueFilters } from "@/lib/types/tickets"
 import type { TicketPriority } from "@/lib/types/tickets"
-import type { ManualStatus } from "@/lib/actions/ticket-actions"
+import type { ManualStatus } from "@/hooks/use-ticket-controls"
 import { QueueToolbar } from "@/components/tickets/QueueToolbar"
 import { QueueTable } from "@/components/tickets/QueueTable"
 

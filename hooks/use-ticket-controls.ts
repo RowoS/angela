@@ -11,8 +11,8 @@ import {
 // through one of the two functions below, so there's exactly one
 // place each records what happened (QR-confirmed vs. override) rather
 // than a raw update that leaves no trace of which path was taken.
-export type ManualStatus = 'open' | 'in_progress' | 'on_hold' | 'resolved' | 'reopened' 
-export type ValidStatus = ManualStatus | 'closed'
+export type ManualStatus = | 'open' | 'in_progress' | 'on_hold' 
+export type ValidStatus = ManualStatus | 'closed' | 'cancelled'
 
 export function useTicketControls(ticketId: string, initialStatus: ValidStatus, initialAssigneeId: string | null) {
   const [isUpdating, setIsUpdating] = useState(false)

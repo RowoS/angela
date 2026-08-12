@@ -4,11 +4,13 @@ import type { QueueTicket, TicketDetailData } from '@/lib/types/tickets'
 
 import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from 'next/cache'
-import type { CommentRow } from '@/app/(authenticated)/tickets/components/TicketComment'
-import type { AttachmentRow } from '@/app/(authenticated)/tickets/components/TicketAttachment'
+import type { CommentRow } from '@/lib/types/tickets'
+import type { AttachmentRow } from '@/lib/types/tickets'
 import { filterTickets, type QueueFilters } from '@/lib/types/tickets'
 import { getSlaState } from '@/lib/utils/sla-utils'
 import { toCsv } from '@/lib/utils/csv-utils'
+
+import type { TicketStatus } from '@/lib/types/tickets'
 
 const SLA_LABEL: Record<ReturnType<typeof getSlaState>, string> = {
   none: '—',
@@ -103,17 +105,14 @@ export async function confirmTicketCreation(ticketId: string, scannedEmployeeNo:
 //
 
 
-const VALID_STATUSES = [
+const VALID_STATUSES: TicketStatus[] = [
   'open',
   'in_progress',
   'on_hold',
-  'resolved',
-  'reopened',
 ] as const
 
-type ManualStatus = (typeof VALID_STATUSES)[number]
 
-export async function updateTicketStatus(ticketId: string, status: ManualStatus) {
+export async function updateTicketStatus(ticketId: string, status: TicketStatus) {
   const { supabase } = await getSupabaseAndUser()
 
   if (!VALID_STATUSES.includes(status)) {

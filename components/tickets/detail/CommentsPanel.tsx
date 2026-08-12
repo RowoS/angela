@@ -1,4 +1,4 @@
-import type { CommentRow } from "@/app/(authenticated)/tickets/components/TicketComment"
+import type { CommentRow } from "@/lib/types/tickets"
 import { CommentItem } from "./CommentItem"
 import { CommentComposer } from "./CommentComposer"
 
