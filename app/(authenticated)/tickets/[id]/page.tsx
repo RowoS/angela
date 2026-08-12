@@ -5,11 +5,13 @@ import {
     getTicketAttachments,
     getAssignableStaff,
     getWasReopened
-} from "@/lib/actions/ticket-actions" // ADJUST if this differs from the real export path
+} from "@/lib/actions/ticket-actions"
+import { getTicketAuditTrail } from "@/lib/actions/activity-actions"
+import { mapAuditRowsToEntries } from "@/lib/audit-log-adapters"
 import { TicketDetailHeader } from "@/components/tickets/detail/TicketDetailHeader"
 import { TicketTabs } from "@/components/tickets/detail/TicketTabs"
 import { CommentsPanel } from "@/components/tickets/detail/CommentsPanel"
-import { AuditLogPanel, SAMPLE_AUDIT_LOG } from "@/components/tickets/detail/AuditLogPanel" // TEST FOR SAMPLE_AUDIT_LOG
+import { AuditLogPanel } from "@/components/tickets/detail/AuditLogPanel"
 import { AttachmentsPanel } from "@/components/tickets/detail/AttachmentsPanel"
 import { EmployeeCard } from "@/components/tickets/detail/EmployeeCard"
 import { StatusPanel } from "@/components/tickets/detail/StatusPanel"
@@ -17,6 +19,7 @@ import { DetailsPanel } from "@/components/tickets/detail/DetailsPanel"
 import { AssignPanel } from "@/components/tickets/detail/AssignPanel"
 import { CloseTicketCard } from "@/components/tickets/detail/CloseTicketCard"
 import TicketDetailBreadcrumb from "@/components/tickets/detail/TicketDetailBreadcrumb"
+
 interface TicketDetailPageProps {
     params: Promise<{ id: string }>
 }
@@ -24,17 +27,20 @@ interface TicketDetailPageProps {
 export default async function TicketDetailPage({ params }: TicketDetailPageProps) {
     const { id } = await params
 
-    // Fetched in parallel — these are 4 independent queries, no reason to
+    // Fetched in parallel — these are independent queries, no reason to
     // wait on one before starting the next.
-    const [ticket, comments, attachments, staff, wasReopened] = await Promise.all([
+    const [ticket, comments, attachments, staff, wasReopened, auditTrail] = await Promise.all([
         getTicketDetail(id),
         getTicketComments(id),
         getTicketAttachments(id),
         getAssignableStaff(),
-        getWasReopened(id), // new
+        getWasReopened(id),
+        getTicketAuditTrail(id),
     ])
 
     if (!ticket) notFound()
+
+    const auditEntries = mapAuditRowsToEntries(auditTrail, staff)
 
     return (
         <div className="flex flex-col w-full gap-5">
@@ -67,7 +73,7 @@ export default async function TicketDetailPage({ params }: TicketDetailPageProps
                         commentCount={comments.length}
                         attachmentCount={attachments.length}
                         commentsPanel={<CommentsPanel ticketId={ticket.id} comments={comments} />}
-                        auditPanel={<AuditLogPanel entries={SAMPLE_AUDIT_LOG} />}
+                        auditPanel={<AuditLogPanel entries={auditEntries} />}
                         attachmentsPanel={<AttachmentsPanel ticketId={ticket.id} attachments={attachments} />}
                     />
                 </div>
