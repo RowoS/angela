@@ -2,7 +2,7 @@
 
 import Image from "next/image"
 import { useState } from "react"
-import { Role, ROLE } from "@/lib/types/dashboard"
+import { Role } from "@/lib/types/dashboard"
 import { usePathname, useRouter } from "next/navigation"
 import { MenuItem, ROLE_MENUS, ROLE_AVATAR_COLORS } from "@/lib/types/sidebar"
 import { ChevronDown, LogOut } from "lucide-react"
@@ -35,6 +35,7 @@ import {
   AlertDialogCancel
 } from "@/components/ui/alert-dialog"
 import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible"
+import { signOut } from "@/lib/actions/auth-actions"
 
 const activeText = "bg-linear-to-r from-[#008AAC] to-[#71BED1] bg-clip-text text-transparent font-medium"
 const hoverText = "group-hover/item:bg-linear-to-r group-hover/item:from-[#008AAC] group-hover/item:to-[#71BED1] group-hover/item:bg-clip-text group-hover/item:text-transparent"
@@ -52,7 +53,6 @@ export function AppSidebar({ role, user }: { role: Role | string; user: AppSideb
   const { state, isMobile, setOpenMobile } = useSidebar()
   const isIconOnly = state === "collapsed" && !isMobile
 
-  // TESTING PURPOSE ONLY: Subject for review and change
   const [isLoggingOut, setIsLoggingOut] = useState(false)
 
   const currentMenuItems = ROLE_MENUS[role as Role] || []
@@ -73,13 +73,9 @@ export function AppSidebar({ role, user }: { role: Role | string; user: AppSideb
     if (isMobile) setOpenMobile(false)
   }
 
-  // TESTING PURPOSE ONLY: Subject for review and change
   const handleLogout = async () => {
-    setIsLoggingOut(true)
-    const { createClient } = await import("@/lib/supabase/client")
-    const supabase = createClient()
-    await supabase.auth.signOut()
-    router.push("/login")
+    setIsLoggingOut(true);
+    signOut()
   }
 
   return (
