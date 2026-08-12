@@ -13,10 +13,15 @@ export const ACTION_META: Record<string, ActionMeta> = {
   'ticket.draft_created':        { label: 'Ticket Created',          color: '#2563eb', bg: '#eff6ff', icon: '🎫' },
   'ticket.verified':             { label: 'Ticket Verified',         color: '#4f46e5', bg: '#eef2ff', icon: '📲' },
   'ticket.status_changed':       { label: 'Status Changed',          color: '#7c3aed', bg: '#f5f3ff', icon: '🔄' },
+  'ticket.commented':         { label: 'Comment Added',      color: '#0891b2', bg: '#ecfeff', icon: '💬' },
+  'ticket.attachment_added':  { label: 'Attachment Added',   color: '#0891b2', bg: '#ecfeff', icon: '📎' },
   'ticket.assigned':             { label: 'Ticket Assigned',         color: '#0891b2', bg: '#ecfeff', icon: '👤' },
   'ticket.deleted':               { label: 'Ticket Deleted',          color: '#dc2626', bg: '#fef2f2', icon: '🗑️' },
   'sla.created':                  { label: 'SLA Created',             color: '#16a34a', bg: '#f0fdf4', icon: '⏱' },
   'sla.updated':                  { label: 'SLA Updated',             color: '#d97706', bg: '#fffbeb', icon: '⏱' },
+  'event.created':                { label: 'Event Created', color: '#16a34a', bg: '#f0fdf4', icon: '📅' },
+  'event.updated':                { label: 'Event Updated', color: '#0891b2', bg: '#ecfeff', icon: '✏️' },
+  'event.deleted':                { label: 'Event Deleted', color: '#dc2626', bg: '#fef2f2', icon: '🗑️' },  
   'room_reservation.created':      { label: 'Room Reserved',           color: '#d97706', bg: '#fffbeb', icon: '🚪' },
   'room_reservation.cancelled':    { label: 'Reservation Cancelled',   color: '#dc2626', bg: '#fef2f2', icon: '❌' },
   'room_reservation.reactivated':  { label: 'Reservation Reactivated', color: '#16a34a', bg: '#f0fdf4', icon: '🚪' },
@@ -24,6 +29,7 @@ export const ACTION_META: Record<string, ActionMeta> = {
   'room_reservation.deleted':      { label: 'Reservation Deleted',     color: '#dc2626', bg: '#fef2f2', icon: '🗑️' },
   'conference_room.created':       { label: 'Room Added',              color: '#16a34a', bg: '#f0fdf4', icon: '🏢' },
   'conference_room.updated':       { label: 'Room Updated',            color: '#0891b2', bg: '#ecfeff', icon: '🏢' },
+  
 }
 
 const DEFAULT_META: ActionMeta = { label: 'Activity', color: '#64748b', bg: '#f1f5f9', icon: '•' }
@@ -35,6 +41,7 @@ export const ACTIVITY_ACTIONS = Object.entries(ACTION_META).map(([value, m]) => 
 
 export const ENTITY_TYPES: { value: string; label: string }[] = [
   { value: 'ticket', label: 'Tickets' },
+  { value: 'event', label: 'Calendar Events' },
   { value: 'room_reservation', label: 'Room Reservations' },
   { value: 'conference_room', label: 'Conference Rooms' },
   { value: 'sla', label: 'SLAs' },
@@ -45,13 +52,14 @@ export const ENTITY_TYPES: { value: string; label: string }[] = [
 // act on either, so they're excluded from an agent's view of the log
 // rather than just being unfilterable noise.
 export const ENTITY_TYPES_FOR_ROLE: Record<StaffRole, string[]> = {
-  admin: ['ticket', 'room_reservation', 'conference_room', 'sla'],
-  agent: ['ticket', 'room_reservation'],
+  admin: ['ticket', 'event', 'room_reservation', 'conference_room', 'sla'],
+  agent: ['ticket', 'event', 'room_reservation'],
   manager: [], // this page is admin/agent only — kept for type completeness
 }
 
 export const FILTER_GROUPS: { label: string; entityType: string }[] = [
   { label: 'Tickets', entityType: 'ticket' },
+  { label: 'Events', entityType: 'event' },
   { label: 'Rooms', entityType: 'room_reservation' },
   { label: 'Conference Rooms', entityType: 'conference_room' },
   { label: 'SLA', entityType: 'sla' },
@@ -77,12 +85,26 @@ export function describeActivity(a: ActivityLike): string {
     case 'ticket.status_changed':
       return `${who} changed a ticket's status (${a.metadata.from_status} → ${a.metadata.to_status})${a.subject ? ` — ${a.subject}` : ''}`
     case 'ticket.assigned':
-      return `${who} assigned a ticket via ${a.metadata.method}${a.subject ? ` (${a.subject})` : ''}`
+      return a.metadata.to_name
+        ? `${who} assigned a ticket to ${a.metadata.to_name}${a.subject ? ` (${a.subject})` : ''}`
+        : `${who} assigned a ticket${a.subject ? ` (${a.subject})` : ''}`
+    case 'ticket.commented':
+      return `${who} commented on a ticket${a.subject ? `(${a.subject})` : ''}`
+    case 'ticket.attachment_added':
+      return `${who} attached a file${a.metadata.filename ? ` (${a.metadata.filename})` : ''}`
     case 'ticket.deleted':
       return `${who} deleted a ticket${a.subject ? ` (${a.subject})` : ''}`
     case 'sla.created':
     case 'sla.updated':
       return `${who} updated the ${a.metadata.priority} priority SLA`
+    case 'event.created':
+      return `${who} created a calendar event${a.subject ? ` (${a.subject})` : ''}`
+    case 'event.updated': {
+      const to = a.metadata.to as { title?: string } | undefined
+      return `${who} updated a calendar event${to?.title ? ` (${to.title})` : ''}`
+    }
+    case 'event.deleted':
+      return `${who} deleted a calendar event${a.metadata.title ? ` (${a.metadata.title})` : ''}`
     case 'room_reservation.created':
       return a.metadata.attached_to_event_id
         ? `${who} reserved a room for "${a.metadata.title}" and attached it to an existing event`
