@@ -287,7 +287,7 @@ export async function deleteAttachment(
 export async function closeTicketViaQr(ticketId: string, scannedEmployeeNo: string) {
   const { supabase } = await getSupabaseAndUser()
 
-  const { error } = await supabase.rpc('close_ticket_via_qr', {
+  const { error } = await supabase.rpc('resolve_ticket_via_qr', {
     _ticket_id: ticketId,
     _scanned_employee_no: scannedEmployeeNo,
   })
