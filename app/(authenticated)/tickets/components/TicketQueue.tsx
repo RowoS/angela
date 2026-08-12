@@ -7,6 +7,7 @@ import { PriorityBadge, StatusBadge, SLABadge } from '@/components/Badges'
 import { getSlaState } from '@/lib/utils/sla-utils'
 import { useTicketFilters } from '@/hooks/use-ticket-filters'
 import type { SortKey } from '@/hooks/use-ticket-filters'
+import { exportTicketQueueCsv } from '@/lib/actions/ticket-actions'
 import type { QueueTicket } from '@/lib/types/tickets'
 import type { Database } from '@/lib/supabase/types'
 
@@ -30,6 +31,35 @@ export function TicketQueue({ tickets }: TicketQueueProps) {
         ? 'bg-indigo-600 text-white border-indigo-600'
         : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
     }`
+
+  const handleExport = async () => {
+    if (isExporting) return
+    setIsExporting(true)
+    try {
+      const { csv, filename } = await exportTicketQueueCsv({
+        search: state.search || undefined,
+        status: state.filterStatus,
+        priority: state.filterPriority,
+        category: state.filterCategory,
+      })
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = filename
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+      URL.revokeObjectURL(url)
+    } catch (err) {
+      // Server action throws a plain Error with a user-safe message
+      // (see getSupabaseAndUser / RLS failures) — surface it directly.
+      alert(err instanceof Error ? err.message : 'Export failed. Please try again.')
+    } finally {
+      setIsExporting(false)
+    }
+  }
 
   return (
     <div className="flex flex-col gap-5">
@@ -73,6 +103,7 @@ export function TicketQueue({ tickets }: TicketQueueProps) {
             ))}
           </select>
           <button
+            onClick={handleExport}
             disabled={isExporting}
             className="flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
           >
