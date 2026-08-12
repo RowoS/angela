@@ -50,7 +50,7 @@ export function TicketDetailView({
   // vs. close), so it's cosmetic, not a correctness risk.
   const { isUpdating: isClosing, handleQrClose, handleOverrideClose } = useTicketControls(
     ticket.id,
-    ticket.status === 'closed' ? 'resolved' : (ticket.status as ValidStatus),
+    ticket.status === 'resolved' ? 'resolved' : (ticket.status as ValidStatus),
     ticket.assigned_to?.id ?? null
   )
 
@@ -169,7 +169,7 @@ export function TicketDetailView({
               staffList={staff.map((s) => ({ id: s.id, full_name: s.full_name ?? 'Unnamed', role: s.role }))}
             />
 
-            {ticket.status !== 'closed' && (
+            {ticket.status !== 'resolved' && (
               <div className="rounded-xl border border-slate-100 bg-white p-4.5">
                 <TicketCloseActions
                   isUpdating={isClosing}

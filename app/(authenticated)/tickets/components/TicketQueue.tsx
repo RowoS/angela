@@ -128,7 +128,7 @@ export function TicketQueue({ tickets }: TicketQueueProps) {
             ) : (
               data.filteredTickets.map((t) => {
                 const slaState = getSlaState(t)
-                const href = t.status === 'pending_confirmation' ? `/tickets/pending/${t.id}` : `/tickets/${t.id}`
+                const href = t.status === 'open' ? `/tickets/pending/${t.id}` : `/tickets/${t.id}`
                 return (
                   <tr key={t.id} className="transition-colors hover:bg-slate-50/70">
                     <td className="px-4 py-2.5">
