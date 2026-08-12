@@ -29,7 +29,6 @@ export const ACTION_META: Record<string, ActionMeta> = {
   'room_reservation.deleted':      { label: 'Reservation Deleted',     color: '#dc2626', bg: '#fef2f2', icon: '🗑️' },
   'conference_room.created':       { label: 'Room Added',              color: '#16a34a', bg: '#f0fdf4', icon: '🏢' },
   'conference_room.updated':       { label: 'Room Updated',            color: '#0891b2', bg: '#ecfeff', icon: '🏢' },
-  
 }
 
 const DEFAULT_META: ActionMeta = { label: 'Activity', color: '#64748b', bg: '#f1f5f9', icon: '•' }
@@ -75,6 +74,11 @@ export function actionsFor(entityType: string, role: StaffRole) {
   return entityType ? pool.filter((a) => a.value.startsWith(`${entityType}.`)) : pool
 }
 
+/**
+ * Full-sentence description for the general activity feed (ActivityLogItem,
+ * one row per ticket/event/room/SLA action, no "who did this to what" context
+ * implied — the sentence has to carry it).
+ */
 export function describeActivity(a: ActivityLike): string {
   const who = a.actorName ?? 'System'
   switch (a.action) {
@@ -85,8 +89,15 @@ export function describeActivity(a: ActivityLike): string {
     case 'ticket.status_changed':
       return `${who} changed a ticket's status (${a.metadata.from_status} → ${a.metadata.to_status})${a.subject ? ` — ${a.subject}` : ''}`
     case 'ticket.assigned':
+      // Both from_name and to_name are snapshotted at assignment time
+      // (see 20260812071139_snapshot_assignee_name.sql and
+      // 20260812120000_snapshot_previous_assignee_name.sql) so history
+      // reads correctly after renames/deactivation. Rows from before
+      // either migration may be missing one or both names — the from
+      // clause is only appended when we actually have it, rather than
+      // printing "from null".
       return a.metadata.to_name
-        ? `${who} assigned a ticket to ${a.metadata.to_name}${a.subject ? ` (${a.subject})` : ''}`
+        ? `${who} assigned a ticket${a.metadata.from_name ? ` from ${a.metadata.from_name}` : ''} to ${a.metadata.to_name}${a.subject ? ` (${a.subject})` : ''}`
         : `${who} assigned a ticket${a.subject ? ` (${a.subject})` : ''}`
     case 'ticket.commented':
       return `${who} commented on a ticket${a.subject ? `(${a.subject})` : ''}`
@@ -127,5 +138,66 @@ export function describeActivity(a: ActivityLike): string {
         : `${who} updated a conference room (${a.metadata.name})`
     default:
       return `${who} — ${a.action}`
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Audit panel (AuditLogPanel) formatting — short trailing-clause style, e.g.
+// "Sofia Reyes status changed: open → in_progress". Distinct from
+// describeActivity() above: that produces a standalone sentence for a flat
+// list with no other context; this produces a fragment meant to follow an
+// actor name that the panel already renders separately, and pairs with
+// from_value/to_value rather than baking the transition into the string.
+// ---------------------------------------------------------------------------
+
+export const AUDIT_ACTION_LABELS: Record<string, string> = {
+  'ticket.draft_created':   'created ticket',
+  'ticket.verified':        'confirmed ticket details',
+  'ticket.status_changed':  'status changed',
+  'ticket.assigned':        'assigned ticket',
+  'ticket.deleted':         'deleted ticket',
+  'ticket.commented':       'commented',
+  'ticket.attachment_added': 'added attachment',
+}
+
+export function auditLabelFor(action: string): string {
+  return AUDIT_ACTION_LABELS[action] ?? action.replace(/^ticket\./, '').replace(/_/g, ' ')
+}
+
+/**
+ * Maps an action to the metadata keys that hold its before/after values, so
+ * the audit panel's diff styling (strikethrough → bold) applies consistently.
+ * `null` means "no from/to pair for this action" (e.g. creation events).
+ */
+export const AUDIT_VALUE_FIELDS: Record<string, { from: string; to: string } | null> = {
+  'ticket.draft_created':   null,
+  'ticket.verified':        { from: 'from_status', to: 'to_status' },
+  'ticket.status_changed':  { from: 'from_status', to: 'to_status' },
+  // Both sides now resolve straight from snapshotted names — no staff
+  // lookup needed on the happy path. Pre-migration rows may still be
+  // missing one or both; the adapter falls back to a staff-list lookup
+  // for whichever side is absent.
+  'ticket.assigned':        { from: 'from_name', to: 'to_name' },
+  'ticket.deleted':         { from: '', to: 'status_at_deletion' },
+}
+
+function prettify(value: unknown): string | null {
+  return typeof value === 'string' && value.length > 0 ? value.replace(/_/g, ' ') : null
+}
+
+/**
+ * Pulls raw from/to strings for an audit action. Values that need identity
+ * resolution and aren't already snapshotted are returned as null — the
+ * caller (audit-log-adapter.ts) falls back to a staff-list lookup for those.
+ */
+export function getAuditValues(
+  action: string,
+  metadata: Record<string, unknown>
+): { from_value: string | null; to_value: string | null } {
+  const fields = AUDIT_VALUE_FIELDS[action]
+  if (!fields) return { from_value: null, to_value: null }
+  return {
+    from_value: fields.from ? prettify(metadata[fields.from]) : null,
+    to_value: prettify(metadata[fields.to]),
   }
 }
