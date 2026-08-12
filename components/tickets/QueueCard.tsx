@@ -7,7 +7,7 @@ import type { QueueTicket } from "@/lib/types/tickets"
 import { getSlaState } from "@/lib/utils/sla-utils"
 import { PriorityBadge } from "./PriorityBadge"
 import { StatusBadge } from "./StatusBadge"
-import { SlaBadge } from "./SLABadge"
+import { SLABadge } from "./SLABadge"
 import { AssigneeAvatar } from "./AssigneeAvatar"
 
 function formatDueDate(iso: string | null) {
@@ -64,7 +64,7 @@ export function QueueCard({ ticket }: { ticket: QueueTicket }) {
 
             {/* SLA + comment/attachment counts + QR */}
             <div className="flex flex-wrap items-center gap-3">
-                <SlaBadge state={slaState} />
+                <SLABadge state={slaState} />
                 <span className="flex items-center gap-1 text-xs text-[#8A8A8A]">
                     <MessageSquare className="size-3.5" />
                     {ticket.comment_count}

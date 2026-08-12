@@ -1,4 +1,5 @@
 import type { Database } from "@/lib/supabase/types"
+import type { ManualStatus } from "@/lib/actions/ticket-actions"
 
 export type TicketStatus = Database["public"]["Enums"]["ticket_status"]
 export type TicketPriority = Database["public"]["Enums"]["ticket_priority"]
@@ -6,6 +7,7 @@ export type TicketPriority = Database["public"]["Enums"]["ticket_priority"]
 export interface TicketCategory {
     id: string
     name: string
+    subcategory?: string
 }
 
 export interface QueueRequester {
@@ -21,6 +23,7 @@ export interface TicketRequester extends QueueRequester {
 export interface TicketAssignee {
     id: string
     full_name: string | null
+    role?: string | null
 }
 
 export interface QueueTicket {
@@ -28,7 +31,7 @@ export interface QueueTicket {
     ticket_number: string
     title: string
     description: string
-    status: TicketStatus
+    status: ManualStatus
     priority: TicketPriority
     created_at: string
     due_at: string | null
@@ -47,7 +50,7 @@ export interface TicketDetailData {
     ticket_number: string
     title: string
     description: string
-    status: TicketStatus
+    status: ManualStatus
     priority: TicketPriority
     created_at: string
     due_at: string | null
@@ -62,7 +65,7 @@ export interface TicketDetailData {
 
 export interface QueueFilters {
     search?: string
-    status?: TicketStatus | "all"
+    status?: ManualStatus | "all"
     priority?: TicketPriority | "all"
     category?: string | "all" // category NAME, since that's what the toolbar/URL param uses
 }

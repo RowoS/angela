@@ -8,7 +8,7 @@ import type { QueueTicket } from "@/lib/types/tickets"
 import { getSlaState } from "@/lib/utils/sla-utils"
 import { PriorityBadge } from "./PriorityBadge"
 import { StatusBadge } from "./StatusBadge"
-import { SlaBadge } from "./SLABadge"
+import { SLABadge } from "./SLABadge"
 import { AssigneeAvatar } from "./AssigneeAvatar"
 
 function formatDueDate(iso: string | null) {
@@ -75,7 +75,7 @@ export function QueueRow({ ticket }: { ticket: QueueTicket }) {
             <TableCell className="align-top pr-3 py-4">
                 <div className="flex items-center gap-3">
                     <div className="w-32 shrink-0">
-                        <SlaBadge state={slaState} />
+                        <SLABadge state={slaState} />
                     </div>
                     <span className="flex items-center gap-1 text-xs text-[#8A8A8A]">
                         <MessageSquare className="size-3.5" />

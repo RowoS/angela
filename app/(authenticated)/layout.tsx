@@ -17,7 +17,9 @@ export default async function AuthenticatedLayout({ children }: { children: Reac
         <AppSidebar role={user.role} user={{ name: user.name }} />
         <main className="flex min-h-screen flex-col flex-1 overflow-y-auto">
           <DashboardHeader role={user.role} />
-          {children}
+          <div className="flex px-7 py-7 items-center justify-center">
+            {children}
+          </div>
         </main>
       </SidebarProvider>
     </div>

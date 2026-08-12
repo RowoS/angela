@@ -132,4 +132,5 @@
 @theme {
   --font-sans: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
   --font-redhat: var(--font-red-hat-display), sans-serif;
+  --font-jetbrmono: var(--font-jet-brains-display), sans-serif;
 }
