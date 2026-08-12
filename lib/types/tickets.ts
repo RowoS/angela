@@ -1,12 +1,13 @@
 import type { Database } from "@/lib/supabase/types"
 import type { ManualStatus } from "@/lib/actions/ticket-actions"
 
-// export type TicketStatus = Database["public"]["Enums"]["ticket_status"]
+export type TicketStatus = Database["public"]["Enums"]["ticket_status"]
 export type TicketPriority = Database["public"]["Enums"]["ticket_priority"]
 
 export interface TicketCategory {
     id: string
     name: string
+    subcategory?: string
 }
 
 export interface QueueRequester {

@@ -98,6 +98,7 @@ const VALID_STATUSES = [
   'on_hold',
   'resolved',
   'reopened',
+  'closed'
 ] as const
 
 export type ManualStatus = (typeof VALID_STATUSES)[number]
@@ -484,4 +485,29 @@ export async function getTicketAttachments(ticketId: string): Promise<Attachment
     created_at: a.created_at,
     uploaded_by: Array.isArray(a.uploaded_by) ? a.uploaded_by[0] ?? null : a.uploaded_by,
   }))
+}
+
+export async function getWasReopened(ticketId: string): Promise<boolean> {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('activity_log_detailed')
+    .select('metadata, created_at')
+    .eq('entity_type', 'ticket')
+    .eq('entity_id', ticketId)
+    .eq('action', 'ticket.status_changed')
+    .order('created_at', { ascending: true })
+
+  if (error) throw new Error(error.message)
+
+  let wasReopened = false
+  for (const row of data ?? []) {
+    const toStatus = (row.metadata as { to_status?: string } | null)?.to_status
+    if (toStatus === 'reopened') {
+      wasReopened = true
+    } else if (toStatus === 'resolved' || toStatus === 'closed') {
+      wasReopened = false
+    }
+  }
+  return wasReopened
 }
