@@ -3,9 +3,11 @@
 import { useMemo } from 'react'
 import type { ActivityLogRow, StaffRole } from '@/lib/types/activity'
 import { useActivityLogs } from '@/hooks/use-activity-log'
-import { toCsv, groupLogsByDate } from '@/lib/utils/activity-utils'
+import { groupLogsByDate } from '@/lib/utils/activity-utils'
 import { ActivityLogFilters } from './ActivityLogFilters'
 import { ActivityLogItem } from './ActivityLogItem'
+import { toCsv } from '@/lib/utils/csv-utils'
+import { describeActivity } from '@/lib/activity-format'
 
 export function ActivityLogPage({
   role,
@@ -21,14 +23,33 @@ export function ActivityLogPage({
   const groupedLogs = useMemo(() => groupLogsByDate(logs), [logs])
 
   const handleExport = () => {
-    const blob = new Blob([toCsv(logs)], { type: 'text/csv;charset=utf-8;' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `activity-log-${new Date().toISOString().slice(0, 10)}.csv`
-    a.click()
-    URL.revokeObjectURL(url)
-  }
+    // 1. Define your headers (previously hardcoded inside activity-utils.ts)
+    const headers = ['Timestamp', 'Actor', 'Action', 'Entity', 'Subject', 'Description'];
+
+    // 2. Map your array of objects into a 2D array (array of arrays)
+    const rows = logs.map((r) => [
+      r.createdAt,
+      r.actorName ?? 'System',
+      r.action,
+      r.entityType,
+      r.subject ?? '',
+      describeActivity(r)
+    ]);
+
+    // 3. Generate the CSV using the unified function
+    const csvString = toCsv(rows, { headers });
+
+    // 4. Trigger the standard browser download
+    const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `activity-log-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a); // Best practice for Firefox compatibility
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  };
 
   return (
     <div style={{ padding: 28, display: 'flex', flexDirection: 'column', gap: 20 }}>
