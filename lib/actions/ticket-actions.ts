@@ -4,8 +4,21 @@ import type { QueueTicket, TicketDetailData } from '@/lib/types/tickets'
 
 import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from 'next/cache'
-import type { CommentRow } from '@/app/(authenticated)/tickets/components/TicketComment'
-import type { AttachmentRow } from '@/app/(authenticated)/tickets/components/TicketAttachment'
+import type { CommentRow } from '@/lib/types/tickets'
+import type { AttachmentRow } from '@/lib/types/tickets'
+import { filterTickets, type QueueFilters } from '@/lib/types/tickets'
+import { getSlaState } from '@/lib/utils/sla-utils'
+import { toCsv } from '@/lib/utils/csv-utils'
+
+import type { TicketStatus } from '@/lib/types/tickets'
+
+const SLA_LABEL: Record<ReturnType<typeof getSlaState>, string> = {
+  none: '—',
+  ok: 'On track',
+  warning: 'At risk',
+  breached: 'Breached',
+}
+
 
 async function getSupabaseAndUser() {
   const supabase = await createClient()
@@ -92,18 +105,14 @@ export async function confirmTicketCreation(ticketId: string, scannedEmployeeNo:
 //
 
 
-const VALID_STATUSES = [
+const VALID_STATUSES: TicketStatus[] = [
   'open',
   'in_progress',
   'on_hold',
-  'resolved',
-  'reopened',
-  'closed'
 ] as const
 
-export type ManualStatus = (typeof VALID_STATUSES)[number]
 
-export async function updateTicketStatus(ticketId: string, status: ManualStatus) {
+export async function updateTicketStatus(ticketId: string, status: TicketStatus) {
   const { supabase } = await getSupabaseAndUser()
 
   if (!VALID_STATUSES.includes(status)) {
@@ -182,6 +191,7 @@ export async function uploadAttachment(ticketId: string | null, formData: FormDa
   if (!file) {
     throw new Error('No file provided')
   }
+
 
   const storagePath = `${ticketId}/${crypto.randomUUID()}-${file.name}`
 
@@ -276,7 +286,7 @@ export async function deleteAttachment(
 export async function closeTicketViaQr(ticketId: string, scannedEmployeeNo: string) {
   const { supabase } = await getSupabaseAndUser()
 
-  const { error } = await supabase.rpc('close_ticket_via_qr', {
+  const { error } = await supabase.rpc('resolve_ticket_via_qr', {
     _ticket_id: ticketId,
     _scanned_employee_no: scannedEmployeeNo,
   })
@@ -389,7 +399,7 @@ export async function getTicketDetail(ticketId: string): Promise<TicketDetailDat
       due_at, first_response_due_at, first_response_at, resolved_at, closed_at,
       category:ticket_categories!tickets_category_id_fkey(id, name),
       requester:employees!tickets_requester_id_fkey(id, full_name, employee_no, department),
-      assigned_to:profiles!tickets_assigned_to_id_fkey(id, full_name, role)
+      assigned_to:profiles!tickets_assigned_to_id_fkey(id, full_name)
     `)
     .eq('id', ticketId)
     .is('deleted_at', null)
@@ -419,7 +429,7 @@ export async function getTicketDetail(ticketId: string): Promise<TicketDetailDat
     requester: requester
       ? { id: requester.id, full_name: requester.full_name, employee_no: requester.employee_no, department: requester.department }
       : null,
-    assigned_to: assignedTo ? { id: assignedTo.id, full_name: assignedTo.full_name, role: assignedTo.role } : null,
+    assigned_to: assignedTo ? { id: assignedTo.id, full_name: assignedTo.full_name } : null,
   }
 }
 
@@ -485,6 +495,54 @@ export async function getTicketAttachments(ticketId: string): Promise<Attachment
     created_at: a.created_at,
     uploaded_by: Array.isArray(a.uploaded_by) ? a.uploaded_by[0] ?? null : a.uploaded_by,
   }))
+}
+
+export async function exportTicketQueueCsv(
+  filters: QueueFilters,
+  opts?: { assignedToSelf?: boolean }
+): Promise<{ csv: string; filename: string }> {
+  const tickets = await getTicketQueue(opts)
+  const rows = filterTickets(tickets, filters)
+
+  const headers = [
+    'Ticket #',
+    'Title',
+    'Requester',
+    'Employee No',
+    'Department',
+    'Category',
+    'Priority',
+    'Status',
+    'Assigned To',
+    'Created At',
+    'Due At',
+    'SLA',
+    'Comments',
+    'Attachments',
+  ]
+
+  const csvRows = rows.map((t) => [
+    t.ticket_number,
+    t.title,
+    t.requester?.full_name ?? '',
+    t.requester?.employee_no ?? '',
+    t.requester?.department ?? '',
+    t.category?.name ?? 'Uncategorized',
+    t.priority,
+    t.status.replace('_', ' '),
+    t.assigned_to?.full_name ?? 'Unassigned',
+    t.created_at,
+    t.due_at ?? '',
+    SLA_LABEL[getSlaState(t)],
+    t.comment_count,
+    t.attachment_count,
+  ])
+
+  const dateStamp = new Date().toISOString().slice(0, 10)
+  return {
+    csv: toCsv(csvRows, { headers: headers}),
+    filename: `ticket-queue-${dateStamp}.csv`,
+  }
 }
 
 export async function getWasReopened(ticketId: string): Promise<boolean> {

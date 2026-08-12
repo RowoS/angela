@@ -5,7 +5,7 @@ import { StatusBadge } from "@/components/tickets/StatusBadge"
 import { SLABadge } from "@/components/tickets/SLABadge" // matches QueueRow's casing — confirm this is the real filename
 import { QRConfirmedBadge } from "./QRConfirmedBadge"
 import { getSlaState } from "@/lib/utils/sla-utils"
-import type { AttachmentRow } from "@/app/(authenticated)/tickets/components/TicketAttachment"
+import type { AttachmentRow } from "@/lib/types/tickets"
 
 export function TicketDetailHeader({ ticket, attachments }: { ticket: TicketDetailData; attachments: AttachmentRow[] }) {
     const slaState = getSlaState(ticket)

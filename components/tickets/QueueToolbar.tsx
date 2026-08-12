@@ -12,9 +12,9 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import type { TicketPriority } from "@/lib/types/tickets"
-import { ManualStatus } from "@/hooks/use-ticket-controls"
+import { TicketStatus } from "@/lib/types/tickets"
 
-const STATUS_TABS: { value: ManualStatus | "all"; label: string }[] = [
+const STATUS_TABS: { value: TicketStatus | "all"; label: string }[] = [
     { value: "all", label: "All" },
     { value: "open", label: "open" },
     { value: "in_progress", label: "in progress" },

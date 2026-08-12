@@ -17,19 +17,6 @@ function formatTimestamp(iso: string) {
     })
 }
 
-// NOTE: no getTicketAuditLog action exists in the actions file yet, and
-// nothing writes to an audit_log table on status/assignment changes
-// despite the requirements doc calling for it. This component is built
-// and ready — it just needs real `entries` passed in from wherever that
-// action ends up living. Until then, pass entries={[]} (or omit it) and
-// it'll show the empty state below rather than fabricating fake rows.
-//
-// To visually test it, pass SAMPLE_AUDIT_LOG (defined below) in from
-// the CALLER — e.g. <AuditLogPanel entries={SAMPLE_AUDIT_LOG} /> in
-// page.tsx/TicketTabs — rather than hardcoding it into this component.
-// Hardcoding it here would mean the entries prop does nothing, so real
-// data passed in later would be silently ignored in favor of the fake
-// set forever.
 export function AuditLogPanel({ entries = [] }: { entries?: AuditLogEntry[] }) {
     if (entries.length === 0) {
         return (
@@ -76,45 +63,3 @@ export function AuditLogPanel({ entries = [] }: { entries?: AuditLogEntry[] }) {
         </div>
     )
 }
-
-// TEST DATA ONLY — matches the mockup screenshot exactly. Pass this IN
-// from the caller (see NOTE above), don't reference it inside this file.
-export const SAMPLE_AUDIT_LOG: AuditLogEntry[] = [
-    {
-        id: "1",
-        actor: { full_name: "Sofia Reyes" },
-        action: "created ticket",
-        created_at: "2026-07-20T16:14:00",
-    },
-    {
-        id: "2",
-        actor: { full_name: "Sofia Reyes" },
-        action: "employee QR confirmed (creation)",
-        to_value: "EMP-0042 — Priya Anand",
-        created_at: "2026-07-20T16:15:00",
-    },
-    {
-        id: "3",
-        actor: { full_name: "Sofia Reyes" },
-        action: "status changed",
-        from_value: "open",
-        to_value: "in_progress",
-        created_at: "2026-07-20T16:44:00",
-    },
-    {
-        id: "4",
-        actor: { full_name: "Sofia Reyes" },
-        action: "assigned ticket",
-        from_value: "Unassigned",
-        to_value: "Sofia Reyes",
-        created_at: "2026-07-20T16:44:00",
-    },
-    {
-        id: "5",
-        actor: { full_name: "Marcus Webb" },
-        action: "priority changed",
-        from_value: "medium",
-        to_value: "high",
-        created_at: "2026-07-21T17:00:00",
-    },
-]

@@ -3,7 +3,7 @@
 import { useRef, useState, useTransition } from "react"
 import { Download, Upload, Trash2, FileText } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import type { AttachmentRow } from "@/app/(authenticated)/tickets/components/TicketAttachment"
+import type { AttachmentRow } from "@/lib/types/tickets"
 import {
     getAttachmentDownloadUrl,
     uploadAttachment,

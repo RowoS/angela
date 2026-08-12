@@ -269,6 +269,75 @@ export type Database = {
           },
         ]
       }
+      notification_settings: {
+        Row: {
+          event_type: Database["public"]["Enums"]["notification_event"]
+          in_app: boolean
+          updated_at: string
+        }
+        Insert: {
+          event_type: Database["public"]["Enums"]["notification_event"]
+          in_app?: boolean
+          updated_at?: string
+        }
+        Update: {
+          event_type?: Database["public"]["Enums"]["notification_event"]
+          in_app?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          body: string | null
+          created_at: string
+          entity_id: string
+          entity_type: string
+          event_type: Database["public"]["Enums"]["notification_event"]
+          id: string
+          is_read: boolean
+          recipient_id: string
+          title: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          entity_id: string
+          entity_type: string
+          event_type: Database["public"]["Enums"]["notification_event"]
+          id?: string
+          is_read?: boolean
+          recipient_id: string
+          title: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          entity_id?: string
+          entity_type?: string
+          event_type?: Database["public"]["Enums"]["notification_event"]
+          id?: string
+          is_read?: boolean
+          recipient_id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_recipient_id_fkey"
+            columns: ["recipient_id"]
+            isOneToOne: false
+            referencedRelation: "dashboard_agent_workload"
+            referencedColumns: ["agent_id"]
+          },
+          {
+            foreignKeyName: "notifications_recipient_id_fkey"
+            columns: ["recipient_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -770,6 +839,8 @@ export type Database = {
           priority: Database["public"]["Enums"]["ticket_priority"]
           requester_id: string
           resolved_at: string | null
+          sla_breach_notified_at: string | null
+          sla_warning_notified_at: string | null
           source: Database["public"]["Enums"]["ticket_source"]
           status: Database["public"]["Enums"]["ticket_status"]
           ticket_number: string
@@ -792,6 +863,8 @@ export type Database = {
           priority?: Database["public"]["Enums"]["ticket_priority"]
           requester_id: string
           resolved_at?: string | null
+          sla_breach_notified_at?: string | null
+          sla_warning_notified_at?: string | null
           source?: Database["public"]["Enums"]["ticket_source"]
           status?: Database["public"]["Enums"]["ticket_status"]
           ticket_number: string
@@ -814,6 +887,8 @@ export type Database = {
           priority?: Database["public"]["Enums"]["ticket_priority"]
           requester_id?: string
           resolved_at?: string | null
+          sla_breach_notified_at?: string | null
+          sla_warning_notified_at?: string | null
           source?: Database["public"]["Enums"]["ticket_source"]
           status?: Database["public"]["Enums"]["ticket_status"]
           ticket_number?: string
@@ -968,13 +1043,16 @@ export type Database = {
       }
       ticket_audit_trail: {
         Row: {
+          action: string | null
           actor_id: string | null
-          changed_by_employee_id: string | null
+          actor_name: string | null
+          actor_role: Database["public"]["Enums"]["roles"] | null
           created_at: string | null
-          event_type: string | null
+          entity_id: string | null
+          entity_type: string | null
           id: string | null
           metadata: Json | null
-          ticket_id: string | null
+          subject: string | null
         }
         Relationships: []
       }
@@ -1046,9 +1124,81 @@ export type Database = {
       get_caller_department: { Args: never; Returns: string }
       get_caller_role: { Args: never; Returns: string }
       is_admin: { Args: never; Returns: boolean }
+      notify_ticket_watchers_and_assignee: {
+        Args: {
+          p_body?: string
+          p_event: Database["public"]["Enums"]["notification_event"]
+          p_exclude_user?: string
+          p_ticket_id: string
+          p_title: string
+        }
+        Returns: undefined
+      }
+      notify_user: {
+        Args: {
+          p_body?: string
+          p_entity_id: string
+          p_entity_type: string
+          p_event: Database["public"]["Enums"]["notification_event"]
+          p_recipient_id: string
+          p_title: string
+        }
+        Returns: undefined
+      }
       override_close_ticket: {
         Args: { _reason?: string; _ticket_id: string }
         Returns: undefined
+      }
+      report_agent_performance: {
+        Args: { p_end: string; p_start: string }
+        Returns: {
+          agent_id: string
+          agent_name: string
+          assigned_count: number
+          avg_response_minutes: number
+          resolved_count: number
+          sla_met_pct: number
+        }[]
+      }
+      report_category_breakdown: {
+        Args: { p_end: string; p_start: string }
+        Returns: {
+          category_id: string
+          category_name: string
+          ticket_count: number
+        }[]
+      }
+      report_kpis: {
+        Args: { p_end: string; p_start: string }
+        Returns: {
+          avg_first_response_minutes: number
+          sla_breach_count: number
+          sla_met_rate: number
+          tickets_created: number
+        }[]
+      }
+      report_response_resolution_monthly: {
+        Args: { p_end: string; p_start: string }
+        Returns: {
+          avg_resolution_minutes: number
+          avg_response_minutes: number
+          month: string
+        }[]
+      }
+      report_sla_compliance_monthly: {
+        Args: { p_end: string; p_start: string }
+        Returns: {
+          breached_pct: number
+          met_pct: number
+          month: string
+        }[]
+      }
+      run_sla_notifications: {
+        Args: never
+        Returns: {
+          breached_count: number
+          warned_count: number
+        }[]
       }
       sync_employee_record: {
         Args: {
@@ -1095,6 +1245,17 @@ export type Database = {
         | "staff_availability"
         | "other"
         | "room_reservation"
+      notification_event:
+        | "ticket_created"
+        | "status_changed"
+        | "ticket_assigned"
+        | "comment_public"
+        | "comment_internal"
+        | "qr_confirmed"
+        | "qr_closed"
+        | "sla_warning"
+        | "sla_breached"
+        | "room_reservation_created"
       roles: "agent" | "admin" | "manager"
       ticket_priority: "low" | "medium" | "high" | "critical"
       ticket_source: "web" | "email" | "phone" | "other"
@@ -1246,6 +1407,18 @@ export const Constants = {
         "staff_availability",
         "other",
         "room_reservation",
+      ],
+      notification_event: [
+        "ticket_created",
+        "status_changed",
+        "ticket_assigned",
+        "comment_public",
+        "comment_internal",
+        "qr_confirmed",
+        "qr_closed",
+        "sla_warning",
+        "sla_breached",
+        "room_reservation_created",
       ],
       roles: ["agent", "admin", "manager"],
       ticket_priority: ["low", "medium", "high", "critical"],

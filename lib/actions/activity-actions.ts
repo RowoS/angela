@@ -50,6 +50,7 @@ export async function getActivityLog(filters: GetActivityLogFilters = {}): Promi
 
   if (filters.action) query = query.eq('action', filters.action)
   if (filters.actorId) query = query.eq('actor_id', filters.actorId)
+  if (filters.entityId) query = query.eq('entity_id', filters.entityId)
   if (filters.before) query = query.lt('created_at', filters.before)
 
   if (filters.search) {
@@ -86,4 +87,33 @@ export async function getActivityActors(): Promise<{ id: string; fullName: strin
 export async function getCallerRoleAction(): Promise<StaffRole> {
   const supabase = await createClient()
   return getCallerRole(supabase)
+}
+
+export async function getTicketAuditTrail(
+  ticketId: string,
+  limit = DEFAULT_LIMIT
+): Promise<ActivityLogRow[]> {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('ticket_audit_trail')
+    .select('id, actor_id, actor_name, actor_role, action, entity_type, entity_id, subject, metadata, created_at')
+    .eq('entity_id', ticketId)
+    .order('created_at', { ascending: false })
+    .limit(Math.min(limit, MAX_LIMIT))
+
+  if (error) throw new Error(error.message)
+
+  return (data ?? []).map((row) => ({
+    id: row.id,
+    actorId: row.actor_id,
+    actorName: row.actor_name,
+    actorRole: row.actor_role,
+    action: row.action,
+    entityType: row.entity_type,
+    entityId: row.entity_id,
+    subject: row.subject,
+    metadata: row.metadata,
+    createdAt: row.created_at,
+  }))
 }
