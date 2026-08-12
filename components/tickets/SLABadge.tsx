@@ -1,5 +1,5 @@
 import { Timer, AlertTriangle } from "lucide-react"
-import { SlaState } from "@/lib/actions/sla-actions"
+import { SlaState } from "@/lib/utils/sla-utils"
 
 export function SLABadge({ state }: { state: SlaState }) {
     // "none" (resolved/closed/cancelled — no active SLA clock) and "ok"

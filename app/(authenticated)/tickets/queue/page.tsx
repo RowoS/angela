@@ -1,7 +1,8 @@
 import { Suspense } from "react"
 import { getTicketQueue } from "@/lib/actions/ticket-actions" // ADJUST if your actual actions file lives elsewhere
 import { filterTickets, QueueFilters } from "@/lib/types/tickets"
-import type { TicketStatus, TicketPriority } from "@/lib/types/tickets"
+import type { TicketPriority } from "@/lib/types/tickets"
+import type { ManualStatus } from "@/lib/actions/ticket-actions"
 import { QueueToolbar } from "@/components/tickets/QueueToolbar"
 import { QueueTable } from "@/components/tickets/QueueTable"
 
@@ -20,7 +21,7 @@ export default async function QueuePage({ searchParams }: QueuePageProps) {
     const allTickets = await getTicketQueue({ assignedToSelf: false })
 
     const filters: QueueFilters = {
-        status: (params.status as TicketStatus | "all") ?? "all",
+        status: (params.status as ManualStatus | "all") ?? "all",
         priority: (params.priority as TicketPriority | "all") ?? "all",
         category: params.category ?? "all",
         search: params.search ?? "",
