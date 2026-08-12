@@ -1,11 +1,11 @@
 "use client"
 
-import { Bell, Menu } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { Menu } from 'lucide-react'
 import { usePathname } from "next/navigation"
 import { Role } from "@/lib/types/dashboard"
 import { getMenuLabelForPath } from "@/lib/types/sidebar"
 import { useSidebar } from "@/components/ui/sidebar"
+import { NotificationPopover } from '@/components/notifications/NotificationPopover'
 
 interface DashboardHeaderProps {
     role: Role | string;
@@ -33,9 +33,9 @@ export default function DashboardHeader({ role }: DashboardHeaderProps) {
                         {menuItem}
                     </span>
                 </div>
-                <Button variant="secondary" size="icon" className='bg-white'>
-                    <Bell />
-                </Button>
+                
+                {/* Dynamically handles UI, Badges, and Popover State */}
+                <NotificationPopover />
             </div>
         </div>
     )
