@@ -1,20 +1,17 @@
-import type { TicketStatus } from "@/lib/types/tickets"
+import type { ManualStatus } from "@/lib/actions/ticket-actions"
 
-const STATUS_STYLES: Record<TicketStatus, { bg: string; text: string; label: string }> = {
-    pending_confirmation: { bg: "bg-[#F2F2F2]", text: "text-[#5B5B5B]", label: "Pending confirmation" },
-    open: { bg: "bg-[#E6F0FE]", text: "text-[#1D4ED8]", label: "Open" },
-    in_progress: { bg: "bg-[#EDE9FE]", text: "text-[#6D28D9]", label: "In progress" },
-    on_hold: { bg: "bg-[#FEF3C7]", text: "text-[#92400E]", label: "On hold" },
-    resolved: { bg: "bg-[#DCFCE7]", text: "text-[#15803D]", label: "Resolved" },
-    closed: { bg: "bg-[#F2F2F2]", text: "text-[#5B5B5B]", label: "Closed" },
-    reopened: { bg: "bg-[#FEE2E2]", text: "text-[#B91C1C]", label: "Reopened" },
-    cancelled: { bg: "bg-[#F2F2F2]", text: "text-[#8A8A8A]", label: "Cancelled" },
+export const STATUS_STYLES: Record<ManualStatus, { bg: string; text: string; label: string }> = {
+    open: { bg: "bg-[#1949CF]/20", text: "text-[#1949CF]", label: "Open" },
+    in_progress: { bg: "bg-[#8A38F5]/20", text: "text-[#8A38F5]", label: "In Progress" },
+    on_hold: { bg: "bg-[#987700]/20", text: "text-[#987700]", label: "On Hold" },
+    resolved: { bg: "bg-[#15803D]/20", text: "text-[#15803D]", label: "Resolved" },
+    reopened: { bg: "bg-[#B91C1C]/20", text: "text-[#B91C1C]", label: "Reopened" }
 }
 
-export function StatusBadge({ status }: { status: TicketStatus }) {
+export function StatusBadge({ status }: { status: ManualStatus }) {
     const s = STATUS_STYLES[status]
     return (
-        <span className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-medium ${s.bg} ${s.text}`}>
+        <span className={`inline-flex items-center rounded-full text-[10px] px-2.5 py-1 font-medium ${s.bg} ${s.text}`}>
             {s.label}
         </span>
     )

@@ -1,49 +1,95 @@
-import { notFound, redirect } from 'next/navigation'
+import { notFound } from "next/navigation"
 import {
-  getTicketDetail,
-  getAssignableStaff,
-  getTicketComments,
-  getTicketAttachments,
-  getCurrentProfile,
-} from '@/lib/actions/ticket-actions'
-import { getActivityLog } from '@/lib/actions/activity-actions'
-import { TicketDetailView } from '@/app/(authenticated)/tickets/components/TicketDetailView'
+    getTicketDetail,
+    getTicketComments,
+    getTicketAttachments,
+    getAssignableStaff,
+} from "@/lib/actions/ticket-actions" // ADJUST if this differs from the real export path
+import { TicketDetailHeader } from "@/components/tickets/detail/TicketDetailHeader"
+import { TicketTabs } from "@/components/tickets/detail/TicketTabs"
+import { CommentsPanel } from "@/components/tickets/detail/CommentsPanel"
+import { AuditLogPanel } from "@/components/tickets/detail/AuditLogPanel"
+import { AttachmentsPanel } from "@/components/tickets/detail/AttachmentsPanel"
+import { EmployeeCard } from "@/components/tickets/detail/EmployeeCard"
+import { StatusPanel } from "@/components/tickets/detail/StatusPanel"
+import { DetailsPanel } from "@/components/tickets/detail/DetailsPanel"
+import { AssignPanel } from "@/components/tickets/detail/AssignPanel"
+import TicketDetailBreadcrumb from "@/components/tickets/detail/TicketDetailBreadcrumb"
 
-export default async function TicketDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params
+interface TicketDetailPageProps {
+    params: Promise<{ id: string }>
+}
 
-  const ticket = await getTicketDetail(id)
-  if (!ticket) notFound()
-  if (ticket.status === 'pending_confirmation') redirect(`/tickets/pending/${id}`)
+export default async function TicketDetailPage({ params }: TicketDetailPageProps) {
+    const { id } = await params
 
-  const [staff, comments, attachments, activity, profile] = await Promise.all([
-    getAssignableStaff(),
-    getTicketComments(id),
-    getTicketAttachments(id),
-    getActivityLog({ entityType: 'ticket', entityId: id, limit: 50 }),
-    getCurrentProfile(),
-  ])
+    // Fetched in parallel — these are 4 independent queries, no reason to
+    // wait on one before starting the next.
+    const [ticket, comments, attachments, staff] = await Promise.all([
+        getTicketDetail(id),
+        getTicketComments(id),
+        getTicketAttachments(id),
+        getAssignableStaff(),
+    ])
 
-    // Free derivation off the audit trail already fetched above — no
-    // separate query for "who filed this," see ticket.draft_created.
-    const createdByEntry = activity.find((a) => a.action === 'ticket.draft_created')
-    let createdByName: string | null = null
-    if (createdByEntry?.actorId) {
-        const staffMatch = staff.find((s) => s.id === createdByEntry.actorId)
-        createdByName = staffMatch?.full_name ?? null
-    }
-  
+    if (!ticket) notFound()
+
     return (
-        <div className="flex flex-col w-full">
-        <TicketDetailView
-            ticket={ticket}
-            staff={staff}
-            comments={comments}
-            attachments={attachments}
-            activity={activity}
-            createdByName={createdByName}
-            isReadOnly={profile.role === 'manager'}
-        />
+        <div className="flex flex-col w-full gap-5">
+            {/* Breadcrumb */}
+            <TicketDetailBreadcrumb ticket={ticket} />
+
+            <div className="grid grid-cols-[7fr_3fr] gap-4">
+                {/* Main Column */}
+                <div className="flex flex-col gap-3 w-full">
+                    <TicketDetailHeader ticket={ticket} attachments={attachments} />
+
+                    <TicketTabs
+                        commentCount={comments.length}
+                        attachmentCount={attachments.length}
+                        commentsPanel={<CommentsPanel ticketId={ticket.id} comments={comments} />}
+                        auditPanel={<AuditLogPanel />}
+                        attachmentsPanel={<AttachmentsPanel ticketId={ticket.id} attachments={attachments} />}
+                    />
+                </div>
+
+                {/* Sidebar Column */}
+                <div className="flex flex-col gap-3 w-full">
+                    <EmployeeCard requester={ticket.requester} status={ticket.status} />
+                    <StatusPanel ticketId={ticket.id} currentStatus={ticket.status} />
+                    <DetailsPanel ticket={ticket} />
+                    <AssignPanel
+                        ticketId={ticket.id}
+                        currentAssigneeId={ticket.assigned_to?.id ?? null}
+                        staff={staff}
+                    />
+                </div>
+            </div>
+            {/* Main column 
+            <div className="flex flex-col gap-4 lg:col-span-2">
+                // TO DELETE TICKETS HERE 
+                <TicketDetailHeader ticket={ticket} attachments={attachments} />
+
+                <TicketTabs
+                    commentCount={comments.length}
+                    attachmentCount={attachments.length}
+                    commentsPanel={<CommentsPanel ticketId={ticket.id} comments={comments} />}
+                    auditPanel={<AuditLogPanel />}
+                    attachmentsPanel={<AttachmentsPanel ticketId={ticket.id} attachments={attachments} />}
+                />
+            </div>
+
+             Sidebar column 
+            <div className="flex flex-col gap-4">
+                <EmployeeCard requester={ticket.requester} status={ticket.status} />
+                <StatusPanel ticketId={ticket.id} currentStatus={ticket.status} />
+                <DetailsPanel ticket={ticket} />
+                <AssignPanel
+                    ticketId={ticket.id}
+                    currentAssigneeId={ticket.assigned_to?.id ?? null}
+                    staff={staff}
+                />
+            </div> */}
         </div>
     )
 }

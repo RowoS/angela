@@ -100,7 +100,7 @@ const VALID_STATUSES = [
   'reopened',
 ] as const
 
-type ManualStatus = (typeof VALID_STATUSES)[number]
+export type ManualStatus = (typeof VALID_STATUSES)[number]
 
 export async function updateTicketStatus(ticketId: string, status: ManualStatus) {
   const { supabase } = await getSupabaseAndUser()
@@ -388,7 +388,7 @@ export async function getTicketDetail(ticketId: string): Promise<TicketDetailDat
       due_at, first_response_due_at, first_response_at, resolved_at, closed_at,
       category:ticket_categories!tickets_category_id_fkey(id, name),
       requester:employees!tickets_requester_id_fkey(id, full_name, employee_no, department),
-      assigned_to:profiles!tickets_assigned_to_id_fkey(id, full_name)
+      assigned_to:profiles!tickets_assigned_to_id_fkey(id, full_name, role)
     `)
     .eq('id', ticketId)
     .is('deleted_at', null)
@@ -418,7 +418,7 @@ export async function getTicketDetail(ticketId: string): Promise<TicketDetailDat
     requester: requester
       ? { id: requester.id, full_name: requester.full_name, employee_no: requester.employee_no, department: requester.department }
       : null,
-    assigned_to: assignedTo ? { id: assignedTo.id, full_name: assignedTo.full_name } : null,
+    assigned_to: assignedTo ? { id: assignedTo.id, full_name: assignedTo.full_name, role: assignedTo.role } : null,
   }
 }
 
