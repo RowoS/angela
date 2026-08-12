@@ -4,18 +4,19 @@ import {
     getTicketComments,
     getTicketAttachments,
     getAssignableStaff,
+    getWasReopened
 } from "@/lib/actions/ticket-actions" // ADJUST if this differs from the real export path
 import { TicketDetailHeader } from "@/components/tickets/detail/TicketDetailHeader"
 import { TicketTabs } from "@/components/tickets/detail/TicketTabs"
 import { CommentsPanel } from "@/components/tickets/detail/CommentsPanel"
-import { AuditLogPanel } from "@/components/tickets/detail/AuditLogPanel"
+import { AuditLogPanel, SAMPLE_AUDIT_LOG } from "@/components/tickets/detail/AuditLogPanel" // TEST FOR SAMPLE_AUDIT_LOG
 import { AttachmentsPanel } from "@/components/tickets/detail/AttachmentsPanel"
 import { EmployeeCard } from "@/components/tickets/detail/EmployeeCard"
 import { StatusPanel } from "@/components/tickets/detail/StatusPanel"
 import { DetailsPanel } from "@/components/tickets/detail/DetailsPanel"
 import { AssignPanel } from "@/components/tickets/detail/AssignPanel"
+import { CloseTicketCard } from "@/components/tickets/detail/CloseTicketCard"
 import TicketDetailBreadcrumb from "@/components/tickets/detail/TicketDetailBreadcrumb"
-
 interface TicketDetailPageProps {
     params: Promise<{ id: string }>
 }
@@ -25,11 +26,12 @@ export default async function TicketDetailPage({ params }: TicketDetailPageProps
 
     // Fetched in parallel — these are 4 independent queries, no reason to
     // wait on one before starting the next.
-    const [ticket, comments, attachments, staff] = await Promise.all([
+    const [ticket, comments, attachments, staff, wasReopened] = await Promise.all([
         getTicketDetail(id),
         getTicketComments(id),
         getTicketAttachments(id),
         getAssignableStaff(),
+        getWasReopened(id), // new
     ])
 
     if (!ticket) notFound()
@@ -39,24 +41,19 @@ export default async function TicketDetailPage({ params }: TicketDetailPageProps
             {/* Breadcrumb */}
             <TicketDetailBreadcrumb ticket={ticket} />
 
-            <div className="grid grid-cols-[7fr_3fr] gap-4">
-                {/* Main Column */}
-                <div className="flex flex-col gap-3 w-full">
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-[7fr_3fr] lg:grid-rows-[auto_1fr]">
+                <div className="order-1 flex w-full flex-col gap-3 lg:col-start-1 lg:row-start-1">
                     <TicketDetailHeader ticket={ticket} attachments={attachments} />
-
-                    <TicketTabs
-                        commentCount={comments.length}
-                        attachmentCount={attachments.length}
-                        commentsPanel={<CommentsPanel ticketId={ticket.id} comments={comments} />}
-                        auditPanel={<AuditLogPanel />}
-                        attachmentsPanel={<AttachmentsPanel ticketId={ticket.id} attachments={attachments} />}
-                    />
                 </div>
 
-                {/* Sidebar Column */}
-                <div className="flex flex-col gap-3 w-full">
+                <div className="order-2 flex w-full flex-col gap-3 lg:col-start-2 lg:row-start-1 lg:row-span-2">
                     <EmployeeCard requester={ticket.requester} status={ticket.status} />
-                    <StatusPanel ticketId={ticket.id} currentStatus={ticket.status} />
+                    <StatusPanel
+                        ticketId={ticket.id}
+                        currentStatus={ticket.status}
+                        wasReopened={wasReopened}
+                    />
+                    <CloseTicketCard ticketId={ticket.id} currentStatus={ticket.status} />
                     <DetailsPanel ticket={ticket} />
                     <AssignPanel
                         ticketId={ticket.id}
@@ -64,32 +61,17 @@ export default async function TicketDetailPage({ params }: TicketDetailPageProps
                         staff={staff}
                     />
                 </div>
-            </div>
-            {/* Main column 
-            <div className="flex flex-col gap-4 lg:col-span-2">
-                // TO DELETE TICKETS HERE 
-                <TicketDetailHeader ticket={ticket} attachments={attachments} />
 
-                <TicketTabs
-                    commentCount={comments.length}
-                    attachmentCount={attachments.length}
-                    commentsPanel={<CommentsPanel ticketId={ticket.id} comments={comments} />}
-                    auditPanel={<AuditLogPanel />}
-                    attachmentsPanel={<AttachmentsPanel ticketId={ticket.id} attachments={attachments} />}
-                />
+                <div className="order-3 w-full lg:col-start-1 lg:row-start-2">
+                    <TicketTabs
+                        commentCount={comments.length}
+                        attachmentCount={attachments.length}
+                        commentsPanel={<CommentsPanel ticketId={ticket.id} comments={comments} />}
+                        auditPanel={<AuditLogPanel entries={SAMPLE_AUDIT_LOG} />}
+                        attachmentsPanel={<AttachmentsPanel ticketId={ticket.id} attachments={attachments} />}
+                    />
+                </div>
             </div>
-
-             Sidebar column 
-            <div className="flex flex-col gap-4">
-                <EmployeeCard requester={ticket.requester} status={ticket.status} />
-                <StatusPanel ticketId={ticket.id} currentStatus={ticket.status} />
-                <DetailsPanel ticket={ticket} />
-                <AssignPanel
-                    ticketId={ticket.id}
-                    currentAssigneeId={ticket.assigned_to?.id ?? null}
-                    staff={staff}
-                />
-            </div> */}
         </div>
     )
 }
