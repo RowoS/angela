@@ -4,7 +4,7 @@ import { useMemo } from 'react'
 import Link from 'next/link'
 import { MessageSquare } from 'lucide-react'
 import { PriorityBadge, StatusBadge, SLABadge } from '@/components/Badges'
-import { getSlaState, type SlaState } from '@/lib/actions/sla-actions'
+import { getSlaState, type SlaState } from '@/lib/utils/sla-utils'
 import type { QueueTicket } from '@/lib/types/tickets'
 
 interface MyTicketsProps {

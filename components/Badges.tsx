@@ -1,5 +1,5 @@
 import { Priority, Status, Role } from "@/lib/types/dashboard"
-import { SlaState} from "@/lib/actions/sla-actions"
+import { SlaState} from "@/lib/utils/sla-utils"
 
 const PRIORITY_STYLES: Record<Priority, { bgColor: string; textColor: string; dot: string }> = {
     critical: { bgColor: "#fef2f2", textColor: "#dc2626", dot: "#dc2626" },

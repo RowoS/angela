@@ -9,8 +9,12 @@ const PUBLIC_ROUTES = ['/', '/login',  '/auth']
 // Checked in order; first prefix match wins.
 const ROLE_PROTECTED_ROUTES: { prefix: string; roles: Role[] }[] = [
   { prefix: '/dashboard', roles: ['admin', 'agent', 'manager'] },
+  { prefix: '/admin', roles: ['admin']},
   { prefix: '/tickets', roles: ['admin', 'agent']},
-  { prefix: '/reports', roles: ['manager'] },
+  { prefix: '/calendar', roles: ['admin', 'agent', 'manager']},
+  { prefix: '/rooms', roles: ['admin', 'agent']},
+  { prefix: '/reports', roles: ['admin', 'manager'] },
+  { prefix: '/activity', roles: ['admin', 'agent']},
 ]
  
 function isPublicRoute(pathname: string): boolean {
