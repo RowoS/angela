@@ -2,15 +2,7 @@
 
 import { useAttachments } from '@/hooks/use-attachments'
 import type { ValidStatus } from '@/hooks/use-ticket-controls'
-
-export type AttachmentRow = {
-  id: string
-  storage_path: string
-  original_filename: string
-  size_bytes: number
-  created_at: string
-  uploaded_by: { full_name: string } | null
-}
+import type { AttachmentRow } from '@/lib/types/tickets'
 
 interface TicketAttachmentsProps {
   ticketId: string
