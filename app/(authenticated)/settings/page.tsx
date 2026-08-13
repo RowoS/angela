@@ -10,7 +10,7 @@ export default async function SettingsPage() {
   // queries below run. Each individual action re-checks on its own
   // (RLS, or requireRole for the service-role user actions), so this
   // is a UX short-circuit, not the only line of defense.
-  await requireAdmin()
+  const user = await requireAdmin()
 
   const [slas, categories, users, notificationSettings] = await Promise.all([
     getSlas(),
@@ -25,6 +25,7 @@ export default async function SettingsPage() {
       categories={categories}
       users={users}
       notificationSettings={notificationSettings}
+      currentUserId={user.id}
     />
   )
 }
