@@ -4,9 +4,15 @@ import { useState, useTransition } from "react"
 import { Send, LockOpen, Lock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
-import { postComment } from "@/lib/actions/ticket-actions" // ADJUST if this differs from the real export path
+import { postComment } from "@/lib/actions/ticket-actions"
 
-export function CommentComposer({ ticketId }: { ticketId: string }) {
+export function CommentComposer({
+    ticketId,
+    canPostInternal = true,
+}: {
+    ticketId: string
+    canPostInternal?: boolean
+}) {
     const [mode, setMode] = useState<"public" | "internal">("public")
     const [body, setBody] = useState("")
     const [isPending, startTransition] = useTransition()
@@ -41,18 +47,20 @@ export function CommentComposer({ ticketId }: { ticketId: string }) {
                         <LockOpen className="size-3" />
                         Public Reply
                     </button>
-                    <button
-                        type="button"
-                        onClick={() => setMode("internal")}
-                        className={`border-[0.5px] border-[#D1D1D1]/70 items-center gap-1 flex flex-row rounded-sm px-3 py-1.5 text-xs font-medium transition-colors ${
-                            mode === "internal"
-                                ? "bg-[#E6F7FA] text-[#0D90B0]"
-                                : "bg-white text-[#8A8A8A] hover:bg-[#F2F2F2]"
-                        }`}
-                    >
-                        <Lock className="size-3" />
-                        Internal Note
-                    </button>
+                    {canPostInternal && (
+                        <button
+                            type="button"
+                            onClick={() => setMode("internal")}
+                            className={`border-[0.5px] border-[#D1D1D1]/70 items-center gap-1 flex flex-row rounded-sm px-3 py-1.5 text-xs font-medium transition-colors ${
+                                mode === "internal"
+                                    ? "bg-[#E6F7FA] text-[#0D90B0]"
+                                    : "bg-white text-[#8A8A8A] hover:bg-[#F2F2F2]"
+                            }`}
+                        >
+                            <Lock className="size-3" />
+                            Internal Note
+                        </button>
+                    )}
                 </div>
 
                 <Textarea
@@ -84,10 +92,7 @@ export function CommentComposer({ ticketId }: { ticketId: string }) {
                     }`}
                 >
                     <Send className="size-4" />
-                    {isPending 
-                        ? "Sending..." 
-                        : ( mode === "public" ) ? "Send Reply" : "Post Note"
-                    }
+                    {isPending ? "Sending..." : mode === "public" ? "Send Reply" : "Post Note"}
                 </Button>
             </div>
         </div>

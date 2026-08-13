@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation"
+import { createClient } from "@/lib/supabase/server"
 import {
     getTicketDetail,
     getTicketComments,
@@ -27,24 +28,34 @@ interface TicketDetailPageProps {
 export default async function TicketDetailPage({ params }: TicketDetailPageProps) {
     const { id } = await params
 
-    // Fetched in parallel — these are independent queries, no reason to
-    // wait on one before starting the next.
-    const [ticket, comments, attachments, staff, wasReopened, auditTrail] = await Promise.all([
+    const supabase = await createClient()
+    const rolePromise: Promise<string | null> = supabase.auth.getUser().then(({ data: { user } }) => {
+        if (!user) return null
+        return supabase
+            .from("profiles")
+            .select("role")
+            .eq("id", user.id)
+            .single()
+            .then(({ data }) => data?.role ?? null)
+    })
+
+    const [ticket, comments, attachments, staff, wasReopened, auditTrail, role] = await Promise.all([
         getTicketDetail(id),
         getTicketComments(id),
         getTicketAttachments(id),
         getAssignableStaff(),
         getWasReopened(id),
         getTicketAuditTrail(id),
+        rolePromise,
     ])
 
     if (!ticket) notFound()
 
+    const isManager = role === "manager"
     const auditEntries = mapAuditRowsToEntries(auditTrail, staff)
 
     return (
         <div className="flex flex-col w-full gap-5">
-            {/* Breadcrumb */}
             <TicketDetailBreadcrumb ticket={ticket} />
 
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-[7fr_3fr] lg:grid-rows-[auto_1fr]">
@@ -54,25 +65,37 @@ export default async function TicketDetailPage({ params }: TicketDetailPageProps
 
                 <div className="order-2 flex w-full flex-col gap-3 lg:col-start-2 lg:row-start-1 lg:row-span-2">
                     <EmployeeCard requester={ticket.requester} status={ticket.status} />
-                    <StatusPanel
-                        ticketId={ticket.id}
-                        currentStatus={ticket.status}
-                        wasReopened={wasReopened}
-                    />
-                    <CloseTicketCard ticketId={ticket.id} currentStatus={ticket.status} />
+                    {!isManager && (
+                        <StatusPanel
+                            ticketId={ticket.id}
+                            currentStatus={ticket.status}
+                            wasReopened={wasReopened}
+                        />
+                    )}
+                    {!isManager && (
+                        <CloseTicketCard ticketId={ticket.id} currentStatus={ticket.status} />
+                    )}
                     <DetailsPanel ticket={ticket} />
-                    <AssignPanel
-                        ticketId={ticket.id}
-                        currentAssigneeId={ticket.assigned_to?.id ?? null}
-                        staff={staff}
-                    />
+                    {!isManager && (
+                        <AssignPanel
+                            ticketId={ticket.id}
+                            currentAssigneeId={ticket.assigned_to?.id ?? null}
+                            staff={staff}
+                        />
+                    )}
                 </div>
 
                 <div className="order-3 w-full lg:col-start-1 lg:row-start-2">
                     <TicketTabs
                         commentCount={comments.length}
                         attachmentCount={attachments.length}
-                        commentsPanel={<CommentsPanel ticketId={ticket.id} comments={comments} />}
+                        commentsPanel={
+                            <CommentsPanel
+                                ticketId={ticket.id}
+                                comments={comments}
+                                canPostInternal={!isManager}
+                            />
+                        }
                         auditPanel={<AuditLogPanel entries={auditEntries} />}
                         attachmentsPanel={<AttachmentsPanel ticketId={ticket.id} attachments={attachments} />}
                     />
