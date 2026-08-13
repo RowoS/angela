@@ -10,15 +10,17 @@ const PUBLIC_ROUTES = ['/', '/login',  '/auth']
 const ROLE_PROTECTED_ROUTES: { prefix: string; roles: Role[] }[] = [
   { prefix: '/dashboard', roles: ['admin', 'agent', 'manager'] },
   { prefix: '/admin', roles: ['admin']},
-  { prefix: '/tickets', roles: ['admin', 'agent']},
   { prefix: '/calendar', roles: ['admin', 'agent', 'manager']},
   { prefix: '/rooms', roles: ['admin', 'agent']},
   { prefix: '/reports', roles: ['admin', 'manager'] },
   { prefix: '/activity', roles: ['admin', 'agent']},
+  { prefix: '/settings', roles: ['admin']},
 ]
  
 function isPublicRoute(pathname: string): boolean {
-  return PUBLIC_ROUTES.some((route) => pathname.startsWith(route))
+  return PUBLIC_ROUTES.some((route) => 
+    route === '/' ? pathname === '/' : pathname.startsWith(route)
+  )
 }
 
 
@@ -65,6 +67,12 @@ export async function updateSession(request: NextRequest) {
   if (!user && !isPublicRoute(pathname)) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
+    return NextResponse.redirect(url)
+  }
+
+  if (user && isPublicRoute(pathname)) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/dashboard'
     return NextResponse.redirect(url)
   }
  

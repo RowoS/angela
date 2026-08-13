@@ -60,7 +60,6 @@ export default async function CalendarPage() {
           <CalendarShell
             currentUserId={user.id}
             currentUserRole={profile.role}
-            currentUserDepartment={profile.department}
             owners={owners}
           />
         </div>

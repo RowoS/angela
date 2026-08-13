@@ -1,8 +1,16 @@
-import type { CommentRow } from "@/app/(authenticated)/tickets/components/TicketComment"
+import type { CommentRow } from "@/lib/types/tickets"
 import { CommentItem } from "./CommentItem"
 import { CommentComposer } from "./CommentComposer"
 
-export function CommentsPanel({ ticketId, comments }: { ticketId: string; comments: CommentRow[] }) {
+export function CommentsPanel({
+    ticketId,
+    comments,
+    canPostInternal = true,
+}: {
+    ticketId: string
+    comments: CommentRow[]
+    canPostInternal?: boolean
+}) {
     return (
         <div className="flex flex-col gap-4">
             <div className="flex flex-col gap-3 pt-3">
@@ -12,7 +20,7 @@ export function CommentsPanel({ ticketId, comments }: { ticketId: string; commen
                     comments.map((c) => <CommentItem key={c.id} comment={c} />)
                 )}
             </div>
-            <CommentComposer ticketId={ticketId} />
+            <CommentComposer ticketId={ticketId} canPostInternal={canPostInternal} />
         </div>
     )
 }

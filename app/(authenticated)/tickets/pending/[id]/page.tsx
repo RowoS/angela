@@ -7,7 +7,8 @@ export default async function PendingTicketPage({ params }: { params: Promise<{ 
   const ticket = await getTicketDetail(id)
 
   if (!ticket) notFound()
-  if (ticket.status !== 'open') redirect(`/tickets/${id}`)
+  if (ticket.status === 'cancelled') redirect('/tickets/queue')
+  if (ticket.status !== 'pending_confirmation') redirect(`/tickets/${id}`)
 
   const attachments = await getTicketAttachments(id)
 

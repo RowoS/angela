@@ -10,6 +10,7 @@ export default async function AuthenticatedLayout({ children }: { children: Reac
   const user = await getCurrentUser()
   if (!user) redirect('/login')
   if (!user.role) redirect('/login?error=no-profile')
+  if (user.passwordResetRequired) redirect('/set-password');
 
   return (
     <div className="bg-[#F8F8F8] w-full min-h-screen">

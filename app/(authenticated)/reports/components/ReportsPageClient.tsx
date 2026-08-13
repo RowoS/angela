@@ -12,7 +12,8 @@ import { AgentPerformanceTable } from '@/components/reports/AgentPerformanceTabl
 import { getReportsData } from '@/lib/actions/reports-actions'
 import type { ReportsData } from '@/lib/types/reports'
 import { REPORT_PERIOD_LABEL, type ReportPeriod } from '@/lib/types/reports'
-import { toCsv, downloadCsv } from '@/lib/utils/reports-csv'
+import { downloadCsv } from '@/lib/utils/reports-csv'
+import { toCsv } from '@/lib/utils/csv-utils'
 
 const PERIOD_OPTIONS: ReportPeriod[] = ['30d', '90d', '6m', '1y']
 
@@ -40,17 +41,24 @@ export function ReportsPageClient({
     })
   }
 
-  const handleExport = () => {
+const handleExport = () => {
     if (!data) return
-    const csv = toCsv(
-      data.agentPerformance.map((a) => ({
-        agent: a.agentName,
-        assigned: a.assigned,
-        resolved: a.resolved,
-        avg_response_minutes: a.avgResponseMinutes,
-        sla_met_pct: a.slaMetPct,
-      }))
-    )
+    
+    // 1. Define clean, human-readable column titles
+    const headers = ['Agent Name', 'Assigned', 'Resolved', 'Avg Response (mins)', 'SLA Met (%)']
+
+    // 2. Map the data directly to an array of values (2D array)
+    const rows = data.agentPerformance.map((a) => [
+      a.agentName,
+      a.assigned,
+      a.resolved,
+      a.avgResponseMinutes,
+      a.slaMetPct,
+    ])
+    
+    // 3. Pass the data and the headers to our unified function
+    const csv = toCsv(rows, { headers })
+    
     downloadCsv(`agent-performance-${period}.csv`, csv)
   }
 
