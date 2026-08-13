@@ -24,9 +24,10 @@ interface SettingsShellProps {
   categories: CategoryWithChildren[]
   users: UserRow[]
   notificationSettings: NotificationSettingRow[]
+  currentUserId: string
 }
 
-export function SettingsShell({ slas, categories, users, notificationSettings }: SettingsShellProps) {
+export function SettingsShell({ slas, categories, users, notificationSettings, currentUserId }: SettingsShellProps) {
   const [activeTab, setActiveTab] = useState<SettingsTab>('categories')
 
   const tabStyle = (tab: SettingsTab): React.CSSProperties => ({
@@ -64,7 +65,7 @@ export function SettingsShell({ slas, categories, users, notificationSettings }:
         )}
 
         {activeTab === 'users' && (
-          <UserSettingsForm initialUsers={users} />
+          <UserSettingsForm initialUsers={users} currentUserId={currentUserId} />
         )}
 
         {activeTab === 'notifications' && (

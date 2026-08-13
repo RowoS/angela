@@ -1,7 +1,5 @@
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
-import { getCurrentUserRole } from "@/lib/actions/role-actions";
-import type { SupabaseClient } from "@supabase/supabase-js";
+import { getCurrentUser } from "./session";
 
 /**
  * Server-only guard for admin-gated routes. Redirects to /login if
@@ -14,25 +12,16 @@ import type { SupabaseClient } from "@supabase/supabase-js";
  * sees the settings shell in the first place, even though RLS would
  * reject their writes regardless.
  */
-export async function requireAdmin(): Promise<{
-  supabase: SupabaseClient;
-  userId: string;
-}> {
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+export async function requireAdmin() {
+  const user = await getCurrentUser();
 
   if (!user) {
     redirect("/login");
   }
 
-  const role = await getCurrentUserRole(supabase, user.id);
-
-  if (role !== "admin") {
+  if (user.role !== "admin") {
     redirect("/unauthorized");
   }
 
-  return { supabase, userId: user.id };
+  return user;
 }

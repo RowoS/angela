@@ -102,10 +102,25 @@ export async function updateUserRoleDepartment(
   userId: string,
   input: { role: UserRole; department: string }
 ) {
-  // Stays on the normal session-bound client — profiles_update_own
-  // already permits admins to update any profile row, so there's no
-  // RLS bypass here to compensate for with an extra check.
-  const { supabase } = await requireAdminCaller()
+  const { supabase, userId: callerId } = await requireAdminCaller()
+
+  // Defense in depth: profiles_update_own already lets any admin write
+  // any profile row via RLS. That's the exact hole we're closing here —
+  // one admin could otherwise demote, reassign, or lock out another
+  // admin. Block it in the action, before the row ever reaches RLS,
+  // and only exempt an admin editing their own record.
+  if (userId !== callerId) {
+    const { data: target, error: targetError } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', userId)
+      .single()
+
+    if (targetError) throw new Error(targetError.message)
+    if (target?.role === 'admin') {
+      throw new Error('Admins cannot modify other admin accounts.')
+    }
+  }
 
   const { error } = await supabase
     .from('profiles')
