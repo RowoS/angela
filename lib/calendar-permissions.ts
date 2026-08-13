@@ -1,6 +1,6 @@
 import type { Database } from '@/lib/supabase/types';
 
-type Profile = Pick<Database['public']['Tables']['profiles']['Row'], 'id' | 'role' | 'department'>;
+type Profile = Pick<Database['public']['Tables']['profiles']['Row'], 'id' | 'role' >;
 type EventRow = { owner_id: string };
 
 

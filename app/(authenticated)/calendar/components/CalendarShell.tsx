@@ -30,7 +30,6 @@ type ComposerState =
 interface Props {
   currentUserId: string;
   currentUserRole: Database['public']['Enums']['roles'];
-  currentUserDepartment: string | null;
   owners: { id: string; full_name: string; department: string | null }[];
 }
 
@@ -54,7 +53,7 @@ function headerLabel(view: ViewMode, anchor: Date) {
   return format(anchor, 'MMMM d, yyyy');
 }
 
-export function CalendarShell({ currentUserId, currentUserRole, currentUserDepartment, owners }: Props) {
+export function CalendarShell({ currentUserId, currentUserRole, owners }: Props) {
   const [view, setView] = useState<ViewMode>('month');
   const [anchor, setAnchor] = useState(() => new Date());
   const [composer, setComposer] = useState<ComposerState>({ mode: 'closed' });
@@ -150,7 +149,6 @@ export function CalendarShell({ currentUserId, currentUserRole, currentUserDepar
           event={detailEvent}
           currentUserId={currentUserId}
           currentUserRole={currentUserRole}
-          currentUserDepartment={currentUserDepartment}
           onClose={() => setDetailEvent(null)}
           onEdit={() => { setComposer({ mode: 'edit', event: detailEvent }); setDetailEvent(null); }}
           onDeleted={() => { setDetailEvent(null); refresh(); }}

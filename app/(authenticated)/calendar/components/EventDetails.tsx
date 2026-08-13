@@ -19,7 +19,6 @@ interface Props {
   event: CalendarEvent;
   currentUserId: string;
   currentUserRole: Role;
-  currentUserDepartment: string | null;
   onClose: () => void;
   onEdit: () => void;
   onDeleted: () => void;
@@ -29,7 +28,6 @@ export function EventDetail({
   event,
   currentUserId,
   currentUserRole,
-  currentUserDepartment,
   onClose,
   onEdit,
   onDeleted,
@@ -44,8 +42,8 @@ export function EventDetail({
 
   const style = eventTypeStyle(event.event_type);
   const canEdit = canEditEvent(
-    { id: currentUserId, role: currentUserRole, department: currentUserDepartment },
-    { owner_id: event.owner_id, owner: { department: event.owner.department } }
+    { id: currentUserId, role: currentUserRole},
+    { owner_id: event.owner_id}
   );
 
   return (
