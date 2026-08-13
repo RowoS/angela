@@ -100,7 +100,7 @@ insert into public.slas (id, name, priority, first_response_minutes, resolution_
 insert into public.ticket_categories (id, code, name, parent_id, default_priority, default_sla_id) values
   ('c0000000-0000-0000-0000-000000000001', 'HW',  'Hardware',        null, 'medium',   'b0000000-0000-0000-0000-000000000002'),
   ('c0000000-0000-0000-0000-000000000002', 'SW',  'Software',        null, 'medium',   'b0000000-0000-0000-0000-000000000002'),
-  ('c0000000-0000-0000-0000-000000000003', 'NET', 'Network',         null, 'high',     'b0000000-0000-0000-0000-000000000003'),
+  ('c0000000-0000-0000-0000-000000000003', 'NW', 'Network',         null, 'high',     'b0000000-0000-0000-0000-000000000003'),
   ('c0000000-0000-0000-0000-000000000004', 'ACC', 'Access/Accounts', null, 'high',     'b0000000-0000-0000-0000-000000000003'),
   ('c0000000-0000-0000-0000-000000000005', 'OTH', 'Other',           null, 'low',      'b0000000-0000-0000-0000-000000000001');
 

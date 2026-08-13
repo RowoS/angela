@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { Plus, Edit2, Shield, Copy, Check } from 'lucide-react'
+import { Plus, Edit2, Shield, Copy, Check, Lock } from 'lucide-react'
 import {
   createUser,
   updateUserRoleDepartment
@@ -34,9 +34,10 @@ function initials(name: string | null): string {
 
 interface UserSettingsFormProps {
   initialUsers: UserRow[]
+  currentUserId: string
 }
 
-export function UserSettingsForm({ initialUsers }: UserSettingsFormProps) {
+export function UserSettingsForm({ initialUsers, currentUserId }: UserSettingsFormProps) {
   const [creating, setCreating] = useState(false)
   const [revealedPassword, setRevealedPassword] = useState<{ email: string; password: string } | null>(null)
 
@@ -114,7 +115,7 @@ export function UserSettingsForm({ initialUsers }: UserSettingsFormProps) {
           </thead>
           <tbody>
             {initialUsers.map((u, i) => (
-              <UserTableRow key={u.id} user={u} isLast={i === initialUsers.length - 1} />
+              <UserTableRow key={u.id} user={u} isLast={i === initialUsers.length - 1} currentUserId={currentUserId} />
             ))}
           </tbody>
         </table>
@@ -244,6 +245,7 @@ function CreateUserForm({
           style={{ padding: '7px 18px', borderRadius: 7, border: '1px solid #e2e8f0', backgroundColor: '#fff', color: '#64748b', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}
         >
           Cancel
+
         </button>
         {error && <span style={{ fontSize: 12, color: '#dc2626' }}>{error}</span>}
       </div>
@@ -251,12 +253,14 @@ function CreateUserForm({
   )
 }
 
-function UserTableRow({ user, isLast }: { user: UserRow; isLast: boolean }) {
+function UserTableRow({ user, isLast, currentUserId }: { user: UserRow; isLast: boolean; currentUserId: string }) {
   const [editing, setEditing] = useState(false)
   const [role, setRole] = useState<UserRole>(user.role)
   const [department, setDepartment] = useState(user.department ?? '')
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
+
+  const isProtectedAdmin = user.role === 'admin' && user.id !== currentUserId;
 
   const handleSave = () => {
     setError(null)
@@ -318,6 +322,13 @@ function UserTableRow({ user, isLast }: { user: UserRow; isLast: boolean }) {
               Cancel
             </button>
           </div>
+        ) : isProtectedAdmin ? (
+          <span
+            title="Admins cannot modify other admin accounts"
+            style={{ display: 'inline-flex', color: '#cbd5e1', cursor: 'not-allowed' }}
+          >
+            <Lock size={14} />
+          </span>
         ) : (
           <button onClick={() => setEditing(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8' }}>
             <Edit2 size={14} />

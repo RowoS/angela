@@ -140,7 +140,7 @@ export const ROLE_MENUS: Record<Role, MenuItem[]> = {
         {
             name: "Knowledge Base",
             icon: BookOpen,
-            href: "/articles"
+            href: "/learn"
         },
         {
             name: "Activity Log",
@@ -180,7 +180,7 @@ export const ROLE_MENUS: Record<Role, MenuItem[]> = {
         {
             name: "Knowledge Base",
             icon: BookOpen,
-            href: "/articles"
+            href: "/learn"
         }
     ]
 }
