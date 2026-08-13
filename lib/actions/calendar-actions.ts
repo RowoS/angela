@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
 import type { Database } from '@/lib/supabase/types';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
 type EventType = Database['public']['Enums']['event_type'];
 
@@ -76,12 +77,44 @@ export async function createEvent(input: CreateEventInput) {
   return data;
 }
 
+async function assertCanEditEvent(supabase: SupabaseClient<Database>, eventId: string) {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Not authenticated.');
+
+  const { data: caller, error: callerErr } = await supabase
+    .from('profiles')
+    .select('id, role, department')
+    .eq('id', user.id)
+    .single();
+  if (callerErr || !caller) throw new Error('Could not resolve caller profile.');
+
+  if (caller.role === 'admin') return;
+
+  const { data: event, error: eventErr } = await supabase
+    .from('events')
+    .select('owner_id, owner:profiles!owner_id(department)')
+    .eq('id', eventId)
+    .single();
+  if (eventErr || !event) throw new Error('Event not found.');
+
+  const ownerDept = event.owner?.department ?? null;
+  const callerDept = caller.department ?? null;
+
+  const authorized =
+    (caller.role === 'manager' && ownerDept !== null && callerDept === ownerDept) ||
+    (caller.role === 'agent' && caller.id === event.owner_id);
+
+  if (!authorized) throw new Error('You do not have permission to modify this event.');
+}
+
 export async function updateEvent(id: string, input: Partial<CreateEventInput>) {
   if (input.startsAt && input.endsAt) {
     assertValidRange(input.startsAt, input.endsAt);
   }
 
   const supabase = await createClient();
+  await assertCanEditEvent(supabase, id);
+
   const { data, error } = await supabase
     .from('events')
     .update({
@@ -96,7 +129,6 @@ export async function updateEvent(id: string, input: Partial<CreateEventInput>) 
     .select()
     .single();
 
-    
   if (error) throw new Error(`Failed to update event: ${error.message}`);
   if (!data) throw new Error('Event not found or you do not have permission to edit it.');
 
@@ -106,6 +138,8 @@ export async function updateEvent(id: string, input: Partial<CreateEventInput>) 
 
 export async function deleteEvent(id: string) {
   const supabase = await createClient();
+  await assertCanEditEvent(supabase, id);
+
   const { error, count } = await supabase
     .from('events')
     .delete({ count: 'exact' })
@@ -116,7 +150,6 @@ export async function deleteEvent(id: string) {
 
   revalidatePath('/calendar');
 }
-
 export async function getEventOwners() {
   const supabase = await createClient();
   const { data, error } = await supabase
