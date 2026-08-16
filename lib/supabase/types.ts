@@ -1074,10 +1074,6 @@ export type Database = {
         Returns: boolean
       }
       can_view_ticket: { Args: { _ticket_id: string }; Returns: boolean }
-      close_ticket_via_qr: {
-        Args: { _scanned_employee_no: string; _ticket_id: string }
-        Returns: undefined
-      }
       complete_password_setup: { Args: never; Returns: undefined }
       confirm_ticket_creation_via_qr: {
         Args: { _scanned_employee_no: string; _ticket_id: string }
@@ -1192,6 +1188,10 @@ export type Database = {
           met_pct: number
           month: string
         }[]
+      }
+      resolve_ticket_via_qr: {
+        Args: { _scanned_employee_no: string; _ticket_id: string }
+        Returns: undefined
       }
       run_sla_notifications: {
         Args: never
