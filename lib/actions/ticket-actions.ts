@@ -298,6 +298,21 @@ export async function closeTicketViaQr(ticketId: string, scannedEmployeeNo: stri
   revalidatePath(`/tickets/${ticketId}`)
 }
 
+export async function reopenTicketViaQr(ticketId: string, scannedEmployeeNo: string) {
+  const { supabase } = await getSupabaseAndUser()
+
+  const { error } = await supabase.rpc('reopen_ticket_via_qr', {
+    _ticket_id: ticketId,
+    _scanned_employee_no: scannedEmployeeNo,
+  })
+
+  if (error) {
+    throw new Error(error.message)
+  }
+
+  revalidatePath(`/tickets/${ticketId}`)
+}
+
 export async function overrideCloseTicket(ticketId: string, reason?: string) {
   const { supabase } = await getSupabaseAndUser()
 

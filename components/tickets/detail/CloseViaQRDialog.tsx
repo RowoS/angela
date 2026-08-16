@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { QrCode, CheckCircle2, AlertCircle, ScanLine, Loader2 } from "lucide-react"
 import { useQrScanner, type QrScannerError } from "@/hooks/useQRScanner" // ADJUST if path/casing differs from the real file
-import { closeTicketViaQr, updateTicketStatus } from "@/lib/actions/ticket-actions" // ADJUST if this differs from the real export path
+import { closeTicketViaQr, reopenTicketViaQr } from "@/lib/actions/ticket-actions" // ADJUST if this differs from the real export path
 
 type Mode = "close" | "reopen"
 
@@ -50,22 +50,15 @@ export function CloseViaQRDialog({ ticketId, mode = "close" }: { ticketId: strin
         startTransition(async () => {
             try {
                 if (actionMode === "close") {
-                    // Real server-side verification — close_ticket_via_qr
-                    // actually checks employeeNo matches the ticket's
-                    // requester before allowing the close.
+                    // Real server-side verification — closeTicketViaQr
+                    // (resolve_ticket_via_qr) checks employeeNo matches the
+                    // ticket's requester before allowing the resolve.
                     await closeTicketViaQr(ticketId, employeeNo)
                 } else {
-                    // NOTE: there's no reopen_ticket_via_qr RPC — reopening
-                    // is just a plain status update, already valid per
-                    // VALID_STATUSES. The scan/manual-entry step here is
-                    // captured for the UX/audit trail (you can see WHICH
-                    // employee number was entered in whatever calls this),
-                    // but unlike the close flow, it is NOT verified
-                    // server-side against the actual requester. If that
-                    // verification matters for reopening too, this needs
-                    // a real reopen_ticket_via_qr RPC mirroring
-                    // close_ticket_via_qr, not just a relabeled dialog.
-                    await updateTicketStatus(ticketId, "reopened")
+                    // Same verification as close: reopen_ticket_via_qr checks
+                    // employeeNo against the ticket's requester and rejects
+                    // tickets that aren't currently resolved/closed, server-side.
+                    await reopenTicketViaQr(ticketId, employeeNo)
                 }
                 setCompletedMode(actionMode)
                 setStage("success")
@@ -324,4 +317,3 @@ export function CloseViaQRDialog({ ticketId, mode = "close" }: { ticketId: strin
         </Dialog>
     )
 }
-
